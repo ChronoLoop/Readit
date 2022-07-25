@@ -2,28 +2,30 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/ikevinws/reddit-clone/db"
+	"github.com/ikevinws/reddit-clone/models"
 )
 
-type User struct {
-	Name     string `json:"name"`
-	Id       int    `json:"id"`
-	Password string `json:"-"`
-}
-
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	user := &User{Name: "Frank", Id: 1, Password: "12kjfisdjo"}
-	w.Header().Set("content-type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		log.Fatal(err)
+	var user models.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+	if err := db.Connection.Create(&user).Error; err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte{})
 }
 
-func Signin(w http.ResponseWriter, r *http.Request) {
+func SignIn(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Signout(w http.ResponseWriter, r *http.Request) {
+func SignOut(w http.ResponseWriter, r *http.Request) {
 
 }

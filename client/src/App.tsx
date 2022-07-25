@@ -6,7 +6,10 @@ function App() {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
-        fetch('/api/user/register', { method: 'POST' })
+        fetch('/api/user/register', {
+            method: 'POST',
+            body: JSON.stringify({ hello: 'hello' }),
+        })
             .then((res) => res.json())
             .then((data) => console.log(data));
     }, []);

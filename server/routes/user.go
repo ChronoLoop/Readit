@@ -6,8 +6,9 @@ import (
 )
 
 func UserRouter(r chi.Router) {
-	r.Post("/register", handlers.CreateUser)
-	r.Post("/signin", handlers.Signin)
-	r.Get("/signout", handlers.Signout)
-
+	r.Route("/user", func(r chi.Router) {
+		r.Post("/register", handlers.CreateUser)
+		r.Post("/signin", handlers.SignIn)
+		r.Get("/signout", handlers.SignOut)
+	})
 }
