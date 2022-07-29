@@ -8,7 +8,7 @@ import (
 type User struct {
 	gorm.Model
 	Username string `json:"username" gorm:"unique;not null" validate:"required,min=4,max=20"`
-	Password string `json:"password" validate:"required,min=4,max=20"`
+	Password string `json:"password,-" validate:"required,min=4,max=20"`
 }
 
 func FindUser(db *gorm.DB, username string) (User, bool) {

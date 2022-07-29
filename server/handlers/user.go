@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,6 +13,14 @@ import (
 	"github.com/ikevinws/reddit-clone/models"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func createJwtToken(secretKey string, issuer int, expirationTime time.Time) (string, error) {
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    strconv.Itoa(issuer),
+		ExpiresAt: expirationTime.Unix(), //1 day
+	})
+	return tokenClaims.SignedString([]byte(secretKey))
+}
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
@@ -42,7 +49,6 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte{})
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
@@ -66,26 +72,14 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	secretKey := os.Getenv("JWT_SECRET")
 
-	fmt.Println(secretKey)
-
-	accessTokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(dbUser.ID)),
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), //1 day
-	})
-	accessToken, err := accessTokenClaims.SignedString([]byte(secretKey))
-
+	accessToken, err := createJwtToken(secretKey, int(dbUser.ID), time.Now().Add(time.Hour*24))
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Could not login")
 		return
 	}
 
 	refreshTokenExpirationTime := time.Now().Add(time.Hour * 24 * 7)
-	refreshTokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(dbUser.ID)),
-		ExpiresAt: refreshTokenExpirationTime.Unix(), //1 day
-	})
-	refreshToken, err := refreshTokenClaims.SignedString([]byte(secretKey))
-
+	refreshToken, err := createJwtToken(secretKey, int(dbUser.ID), refreshTokenExpirationTime)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "Could not login")
 		return
@@ -104,5 +98,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {
-
+	http.SetCookie(w, &http.Cookie{
+		Name:    "refresh_token",
+		Value:   "",
+		Expires: time.Now().Add(-time.Hour),
+	})
+	w.WriteHeader(http.StatusNoContent)
 }
