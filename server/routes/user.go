@@ -7,7 +7,7 @@ import (
 
 func UserRouter(r chi.Router) {
 	r.Route("/user", func(r chi.Router) {
-		r.Post("/register", handlers.CreateUser)
+		r.Post("/register", handlers.RegisterUser)
 		r.Post("/signin", handlers.SignIn)
 		r.Get("/signout", handlers.SignOut)
 	})

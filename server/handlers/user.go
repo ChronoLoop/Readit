@@ -2,28 +2,105 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
+	"time"
 
+	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt"
 	"github.com/ikevinws/reddit-clone/db"
 	"github.com/ikevinws/reddit-clone/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := db.Connection.Create(&user).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+	validate := validator.New()
+	if err := validate.Struct(&user); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
+
+	if _, userExists := models.FindUser(db.Connection, user.Username); userExists == true {
+		respondError(w, http.StatusBadRequest, "Username already exists")
+		return
+	}
+
+	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	user.Password = string(password)
+
+	if err := models.CreateUser(db.Connection, &user); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte{})
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	dbUser, userExists := models.FindUser(db.Connection, user.Username)
+
+	if userExists == false {
+		respondError(w, http.StatusBadRequest, "Invalid Credentials")
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password)); err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid Credentials")
+		return
+	}
+
+	secretKey := os.Getenv("JWT_SECRET")
+
+	fmt.Println(secretKey)
+
+	accessTokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    strconv.Itoa(int(dbUser.ID)),
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), //1 day
+	})
+	accessToken, err := accessTokenClaims.SignedString([]byte(secretKey))
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Could not login")
+		return
+	}
+
+	refreshTokenExpirationTime := time.Now().Add(time.Hour * 24 * 7)
+	refreshTokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Issuer:    strconv.Itoa(int(dbUser.ID)),
+		ExpiresAt: refreshTokenExpirationTime.Unix(), //1 day
+	})
+	refreshToken, err := refreshTokenClaims.SignedString([]byte(secretKey))
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Could not login")
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  refreshTokenExpirationTime,
+		HttpOnly: true,
+	})
+
+	respondJSON(w, http.StatusOK, map[string]string{
+		"accessToken": accessToken,
+	})
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {

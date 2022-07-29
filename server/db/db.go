@@ -8,6 +8,7 @@ import (
 	"github.com/ikevinws/reddit-clone/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var Connection *gorm.DB
@@ -26,7 +27,9 @@ func Initialize() {
 		name,
 		port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 	if err != nil {
 		log.Fatal("Could not connect database")
 	}
