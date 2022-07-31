@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,32 +12,72 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/ikevinws/reddit-clone/db"
 	"github.com/ikevinws/reddit-clone/models"
+	"github.com/ikevinws/reddit-clone/utils"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const refreshTokenCookieName string = "refresh_token"
+const refreshTokenExpirationTimeDuration time.Duration = time.Hour * 24 * 7
 
 func createJwtToken(secretKey string, issuer int, expirationTime time.Time) (string, error) {
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Issuer:    strconv.Itoa(issuer),
-		ExpiresAt: expirationTime.Unix(), //1 day
+		ExpiresAt: expirationTime.Unix(),
 	})
 	return tokenClaims.SignedString([]byte(secretKey))
+}
+
+func generateAuthTokens(issuer int) (map[string]string, error) {
+	secretKey := os.Getenv("JWT_SECRET")
+
+	accessToken, err := createJwtToken(secretKey, issuer, time.Now().Add(time.Minute*20))
+	if err != nil {
+		return nil, errors.New("Could not login")
+	}
+
+	refreshTokenExpirationTime := time.Now().Add(refreshTokenExpirationTimeDuration)
+	refreshToken, err := createJwtToken(secretKey, issuer, refreshTokenExpirationTime)
+	if err != nil {
+		return nil, errors.New("Could not login")
+	}
+
+	return map[string]string{"refreshToken": refreshToken, "accessToken": accessToken}, nil
+}
+
+func sendTokens(w http.ResponseWriter, issuer int) {
+	authTokens, err := generateAuthTokens(issuer)
+	if err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "Could not login")
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     refreshTokenCookieName,
+		Value:    authTokens["refreshToken"],
+		Expires:  time.Now().Add(refreshTokenExpirationTimeDuration),
+		HttpOnly: true,
+	})
+
+	utils.RespondJSON(w, http.StatusOK, map[string]string{
+		"accessToken": authTokens["accessToken"],
+	})
+
 }
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		respondError(w, http.StatusBadRequest, err.Error())
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(&user); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid fields")
+		utils.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
 
 	if _, userExists := models.FindUser(db.Connection, user.Username); userExists == true {
-		respondError(w, http.StatusBadRequest, "Username already exists")
+		utils.RespondError(w, http.StatusBadRequest, "Username already exists")
 		return
 	}
 
@@ -44,7 +85,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	user.Password = string(password)
 
 	if err := models.CreateUser(db.Connection, &user); err != nil {
-		respondError(w, http.StatusBadRequest, err.Error())
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -54,54 +95,74 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		respondError(w, http.StatusBadRequest, err.Error())
+		utils.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	dbUser, userExists := models.FindUser(db.Connection, user.Username)
 
 	if userExists == false {
-		respondError(w, http.StatusBadRequest, "Invalid Credentials")
+		utils.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password)); err != nil {
-		respondError(w, http.StatusBadRequest, "Invalid Credentials")
+		utils.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
-	secretKey := os.Getenv("JWT_SECRET")
-
-	accessToken, err := createJwtToken(secretKey, int(dbUser.ID), time.Now().Add(time.Hour*24))
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Could not login")
-		return
-	}
-
-	refreshTokenExpirationTime := time.Now().Add(time.Hour * 24 * 7)
-	refreshToken, err := createJwtToken(secretKey, int(dbUser.ID), refreshTokenExpirationTime)
-	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Could not login")
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Expires:  refreshTokenExpirationTime,
-		HttpOnly: true,
-	})
-
-	respondJSON(w, http.StatusOK, map[string]string{
-		"accessToken": accessToken,
-	})
+	sendTokens(w, int(dbUser.ID))
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
-		Name:    "refresh_token",
+		Name:    refreshTokenCookieName,
 		Value:   "",
 		Expires: time.Now().Add(-time.Hour),
 	})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func Refresh(w http.ResponseWriter, r *http.Request) {
+	refreshCookie, err := r.Cookie(refreshTokenCookieName)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	refreshToken, err := jwt.ParseWithClaims(refreshCookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		secretKey := os.Getenv("JWT_SECRET")
+		return []byte(secretKey), nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !refreshToken.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	claims := refreshToken.Claims.(*jwt.StandardClaims)
+	issuer, err := strconv.Atoi(claims.Issuer)
+
+	_, userExists := models.FindUserById(db.Connection, issuer)
+	if userExists == false {
+		http.SetCookie(w, &http.Cookie{
+			Name:    refreshTokenCookieName,
+			Value:   "",
+			Expires: time.Now().Add(-time.Hour),
+		})
+		utils.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
+		return
+	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	sendTokens(w, issuer)
 }

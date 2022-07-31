@@ -10,5 +10,6 @@ func UserRouter(r chi.Router) {
 		r.Post("/register", handlers.RegisterUser)
 		r.Post("/signin", handlers.SignIn)
 		r.Get("/signout", handlers.SignOut)
+		r.Get("/refresh", handlers.Refresh)
 	})
 }
