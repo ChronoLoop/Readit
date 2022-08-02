@@ -24,6 +24,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Route("/api", func(r chi.Router) {
 		routes.UserRouter(r)
+		routes.SubredditRouter(r)
 	})
 
 	http.ListenAndServe(":5000", r)

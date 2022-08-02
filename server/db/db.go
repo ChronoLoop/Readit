@@ -33,7 +33,7 @@ func Initialize() {
 	if err != nil {
 		log.Fatal("Could not connect database")
 	}
-	db.Migrator().DropTable(&models.User{})
-	db.AutoMigrate(&models.User{})
+	db.Migrator().DropTable(&models.User{}, &models.Subreddit{})
+	db.AutoMigrate(&models.User{}, &models.Subreddit{})
 	Connection = db
 }
