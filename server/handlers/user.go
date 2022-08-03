@@ -11,7 +11,6 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/golang-jwt/jwt"
 	"github.com/ikevinws/reddit-clone/common"
-	"github.com/ikevinws/reddit-clone/db"
 	"github.com/ikevinws/reddit-clone/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -76,7 +75,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, userExists := models.FindUserByName(db.Connection, user.Username); userExists {
+	if _, userExists := models.FindUserByName(user.Username); userExists {
 		common.RespondError(w, http.StatusBadRequest, "Username already exists")
 		return
 	}
@@ -84,7 +83,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	user.Password = string(password)
 
-	if err := models.CreateUser(db.Connection, &user); err != nil {
+	if err := models.CreateUser(&user); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -99,7 +98,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, userExists := models.FindUserByName(db.Connection, user.Username)
+	dbUser, userExists := models.FindUserByName(user.Username)
 
 	if !userExists {
 		common.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
@@ -149,7 +148,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	claims := refreshToken.Claims.(*jwt.StandardClaims)
 	issuer, err := strconv.Atoi(claims.Issuer)
 
-	_, userExists := models.FindUserById(db.Connection, issuer)
+	_, userExists := models.FindUserById(issuer)
 	if !userExists {
 		http.SetCookie(w, &http.Cookie{
 			Name:    refreshTokenCookieName,

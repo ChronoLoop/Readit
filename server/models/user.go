@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+
+	"github.com/ikevinws/reddit-clone/db"
 	"gorm.io/gorm"
 )
 
@@ -11,9 +13,9 @@ type User struct {
 	Password string `json:"password" validate:"required,min=4,max=20"`
 }
 
-func FindUserByName(db *gorm.DB, username string) (User, bool) {
+func FindUserByName(username string) (User, bool) {
 	user := User{}
-	db.Where("username = ?", username).First(&user)
+	db.Connection.Where("username = ?", username).First(&user)
 	if user.ID == 0 {
 		return user, false
 	}
@@ -21,17 +23,17 @@ func FindUserByName(db *gorm.DB, username string) (User, bool) {
 	return user, true
 }
 
-func FindUserById(db *gorm.DB, id int) (User, bool) {
+func FindUserById(id int) (User, bool) {
 	user := User{}
-	db.Where("id = ?", id).First(&user)
+	db.Connection.Where("id = ?", id).First(&user)
 	if user.ID == 0 {
 		return user, false
 	}
 	return user, true
 }
 
-func CreateUser(db *gorm.DB, user *User) error {
-	if err := db.Create(&user).Error; err != nil {
+func CreateUser(user *User) error {
+	if err := db.Connection.Create(&user).Error; err != nil {
 		return errors.New("user could not be created")
 	}
 	return nil

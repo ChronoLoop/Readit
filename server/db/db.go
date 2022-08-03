@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/ikevinws/reddit-clone/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -33,7 +32,6 @@ func Initialize() {
 	if err != nil {
 		log.Fatal("Could not connect database")
 	}
-	db.Migrator().DropTable(&models.User{}, &models.Subreddit{})
-	db.AutoMigrate(&models.User{}, &models.Subreddit{})
+
 	Connection = db
 }

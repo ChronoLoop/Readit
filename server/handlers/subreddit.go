@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-playground/validator"
 	"github.com/ikevinws/reddit-clone/common"
-	"github.com/ikevinws/reddit-clone/db"
 	"github.com/ikevinws/reddit-clone/models"
 )
 
@@ -17,7 +16,7 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, exists := models.FindSubredditByName(db.Connection, subreddit.Name); exists {
+	if _, exists := models.FindSubredditByName(subreddit.Name); exists {
 		common.RespondError(w, http.StatusBadRequest, "Subreddit already exists")
 	}
 
@@ -27,7 +26,7 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateSubreddit(db.Connection, &subreddit); err != nil {
+	if err := models.CreateSubreddit(&subreddit); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -36,7 +35,7 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSubreddits(w http.ResponseWriter, r *http.Request) {
-	subreddits, err := models.GetSubreddits(db.Connection)
+	subreddits, err := models.GetSubreddits()
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 	}
