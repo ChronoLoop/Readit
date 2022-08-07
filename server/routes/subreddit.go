@@ -8,10 +8,7 @@ import (
 
 func SubredditRouter(r chi.Router) {
 	r.Route("/subreddit", func(r chi.Router) {
-		r.Route("/create", func(r chi.Router) {
-			r.Use(middleware.IsAuthorized)
-			r.Post("/", handlers.CreateSubreddit)
-		})
+		r.With(middleware.IsAuthorized).Post("/create", handlers.CreateSubreddit)
 		r.Get("/", handlers.GetSubreddits)
 	})
 }

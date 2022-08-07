@@ -20,14 +20,15 @@ func main() {
 	}
 
 	db.Initialize()
-	db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{})
-	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{})
+	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVotes{})
+	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVotes{})
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Route("/api", func(r chi.Router) {
 		routes.UserRouter(r)
 		routes.SubredditRouter(r)
+		routes.PostRouter(r)
 	})
 
 	http.ListenAndServe(":5000", r)

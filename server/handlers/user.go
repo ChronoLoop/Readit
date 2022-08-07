@@ -75,7 +75,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, userExists := models.FindUserByName(user.Username); userExists {
+	if userExists := models.FindUserByName(&models.User{}, user.Username); userExists {
 		common.RespondError(w, http.StatusBadRequest, "Username already exists")
 		return
 	}
@@ -98,7 +98,8 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, userExists := models.FindUserByName(user.Username)
+	dbUser := &models.User{}
+	userExists := models.FindUserByName(dbUser, user.Username)
 
 	if !userExists {
 		common.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
@@ -148,7 +149,12 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	claims := refreshToken.Claims.(*jwt.StandardClaims)
 	issuer, err := strconv.Atoi(claims.Issuer)
 
-	_, userExists := models.FindUserById(issuer)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userExists := models.FindUserById(&models.User{}, issuer)
 	if !userExists {
 		http.SetCookie(w, &http.Cookie{
 			Name:    refreshTokenCookieName,
@@ -159,9 +165,12 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	sendTokens(w, issuer)
+}
+
+func CreateResponseUser(user *models.User) models.UserSerializer {
+	return models.UserSerializer{
+		ID:       user.ID,
+		Username: user.Username,
+	}
 }

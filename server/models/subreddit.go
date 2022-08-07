@@ -12,23 +12,19 @@ type Subreddit struct {
 	Name string `json:"name" gorm:"unique;not null" validate:"required,min=3,max=20,alphanum"`
 }
 
-func FindSubredditByName(name string) (Subreddit, bool) {
-	subreddit := Subreddit{}
-	db.Connection.Where("name = ?", name).First(&subreddit)
-	if subreddit.ID == 0 {
-		return subreddit, false
-	}
-
-	return subreddit, true
+type SubRedditSerializer struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
-func FindSubredditById(id int) (Subreddit, bool) {
-	subreddit := Subreddit{}
+func FindSubredditByName(subreddit *Subreddit, name string) bool {
+	db.Connection.Where("name = ?", name).First(&subreddit)
+	return subreddit.ID != 0
+}
+
+func FindSubredditById(subreddit *Subreddit, id uint) bool {
 	db.Connection.Where("id = ?", id).First(&subreddit)
-	if subreddit.ID == 0 {
-		return subreddit, false
-	}
-	return subreddit, true
+	return subreddit.ID != 0
 }
 
 func CreateSubreddit(subreddit *Subreddit) error {
@@ -38,10 +34,9 @@ func CreateSubreddit(subreddit *Subreddit) error {
 	return nil
 }
 
-func GetSubreddits() ([]Subreddit, error) {
-	subreddits := []Subreddit{}
-	if err := db.Connection.Find(&subreddits).Error; err != nil {
-		return subreddits, errors.New("subreddit could not be obtained")
+func GetSubreddits(subreddits *[]Subreddit) error {
+	if err := db.Connection.Find(subreddits).Error; err != nil {
+		return errors.New("subreddit could not be obtained")
 	}
-	return subreddits, nil
+	return nil
 }

@@ -13,23 +13,19 @@ type User struct {
 	Password string `json:"password" validate:"required,min=4,max=20"`
 }
 
-func FindUserByName(username string) (User, bool) {
-	user := User{}
-	db.Connection.Where("username = ?", username).First(&user)
-	if user.ID == 0 {
-		return user, false
-	}
-
-	return user, true
+type UserSerializer struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
 }
 
-func FindUserById(id int) (User, bool) {
-	user := User{}
+func FindUserByName(user *User, username string) bool {
+	db.Connection.Where("username = ?", username).First(&user)
+	return user.ID != 0
+}
+
+func FindUserById(user *User, id int) bool {
 	db.Connection.Where("id = ?", id).First(&user)
-	if user.ID == 0 {
-		return user, false
-	}
-	return user, true
+	return user.ID != 0
 }
 
 func CreateUser(user *User) error {
