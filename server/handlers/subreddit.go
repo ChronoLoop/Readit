@@ -16,7 +16,7 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if exists := models.FindSubredditByName(&models.Subreddit{}, subreddit.Name); exists {
+	if _, exists := models.FindSubredditByName(subreddit.Name); exists {
 		common.RespondError(w, http.StatusBadRequest, "Subreddit already exists")
 		return
 	}
@@ -36,10 +36,10 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSubreddits(w http.ResponseWriter, r *http.Request) {
-	subreddits := []models.Subreddit{}
-	err := models.GetSubreddits(&subreddits)
+	subreddits, err := models.GetSubreddits()
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	subredditsResponse := []models.SubRedditSerializer{}

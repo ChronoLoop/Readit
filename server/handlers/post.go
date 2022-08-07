@@ -50,7 +50,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	validate := validator.New()
 	if err := validate.Struct(&post); err != nil {
-		println(err.Error())
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
@@ -76,18 +75,17 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreddit := &models.Subreddit{}
-	if exists := models.FindSubredditById(subreddit, uint(subredditId)); !exists {
+	subreddit := models.Subreddit{}
+	if _, exists := models.FindSubredditById(uint(subredditId)); !exists {
 		common.RespondError(w, http.StatusBadRequest, "Subreddit does not exist")
 		return
 	}
 
-	posts := &[]models.Post{}
-	err := models.GetPostsBySubredditId(posts, subreddit.ID)
+	posts, err := models.GetPostsBySubredditId(subreddit.ID)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	postsResponse := CreateResponsePosts(posts)
+	postsResponse := CreateResponsePosts(&posts)
 	common.RespondJSON(w, http.StatusOK, postsResponse)
 }

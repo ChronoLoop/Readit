@@ -17,14 +17,16 @@ type SubRedditSerializer struct {
 	Name string `json:"name"`
 }
 
-func FindSubredditByName(subreddit *Subreddit, name string) bool {
+func FindSubredditByName(name string) (Subreddit, bool) {
+	subreddit := Subreddit{}
 	db.Connection.Where("name = ?", name).First(&subreddit)
-	return subreddit.ID != 0
+	return subreddit, subredditExists(&subreddit)
 }
 
-func FindSubredditById(subreddit *Subreddit, id uint) bool {
+func FindSubredditById(id uint) (Subreddit, bool) {
+	subreddit := Subreddit{}
 	db.Connection.Where("id = ?", id).First(&subreddit)
-	return subreddit.ID != 0
+	return subreddit, subredditExists(&subreddit)
 }
 
 func CreateSubreddit(subreddit *Subreddit) error {
@@ -34,9 +36,14 @@ func CreateSubreddit(subreddit *Subreddit) error {
 	return nil
 }
 
-func GetSubreddits(subreddits *[]Subreddit) error {
-	if err := db.Connection.Find(subreddits).Error; err != nil {
-		return errors.New("subreddit could not be obtained")
+func GetSubreddits() ([]Subreddit, error) {
+	subreddits := []Subreddit{}
+	if err := db.Connection.Find(&subreddits).Error; err != nil {
+		return subreddits, errors.New("subreddit could not be obtained")
 	}
-	return nil
+	return subreddits, nil
+}
+
+func subredditExists(s *Subreddit) bool {
+	return s.ID != 0
 }

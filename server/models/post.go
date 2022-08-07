@@ -45,9 +45,10 @@ func CreatePost(post *Post) error {
 	return nil
 }
 
-func GetPostsBySubredditId(posts *[]Post, subredditId uint) error {
+func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
+	posts := []Post{}
 	if err := db.Connection.Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
-		return errors.New("could not get posts")
+		return posts, errors.New("could not get posts")
 	}
-	return nil
+	return posts, nil
 }
