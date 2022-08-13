@@ -16,7 +16,7 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, exists := models.FindSubredditByName(subreddit.Name); exists {
+	if _, err := models.FindSubredditByName(subreddit.Name); err == nil {
 		common.RespondError(w, http.StatusBadRequest, "Subreddit already exists")
 		return
 	}

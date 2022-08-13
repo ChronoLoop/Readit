@@ -40,9 +40,9 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 
 	switch voteType {
 	case "post":
-		post, postExists := models.FindPostById(vote.ID)
-		if !postExists {
-			common.RespondError(w, http.StatusBadRequest, "post doest not exist")
+		post, err := models.FindPostById(vote.ID)
+		if err != nil {
+			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 		AcceessTokenClaims := middleware.GetRequestAccessTokenClaims(r)
@@ -53,8 +53,8 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		prevPostVote, prevPostVoteExists := models.FindPostVoteById(post.ID, uint(issuer))
-		if !prevPostVoteExists {
+		prevPostVote, prevPostVoteErr := models.FindPostVoteById(post.ID, uint(issuer))
+		if prevPostVoteErr != nil {
 			postVote := models.PostVote{
 				PostID: post.ID,
 				UserID: uint(issuer),

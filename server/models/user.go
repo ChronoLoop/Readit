@@ -18,17 +18,21 @@ type UserSerializer struct {
 	Username string `json:"username"`
 }
 
-func FindUserByName(username string) (User, bool) {
+func FindUserByName(username string) (User, error) {
 	user := User{}
-	db.Connection.Where("username = ?", username).First(&user)
-	return user, userExists(&user)
+	if err := db.Connection.Where("username = ?", username).First(&user).Error; err != nil {
+		return user, errors.New("user does not exist")
+	}
+	return user, nil
 
 }
 
-func FindUserById(id int) (User, bool) {
+func FindUserById(id int) (User, error) {
 	user := User{}
-	db.Connection.Where("id = ?", id).First(&user)
-	return user, userExists(&user)
+	if err := db.Connection.Where("id = ?", id).First(&user).Error; err != nil {
+		return user, errors.New("user does not exist")
+	}
+	return user, nil
 }
 
 func CreateUser(user *User) error {
@@ -36,8 +40,4 @@ func CreateUser(user *User) error {
 		return errors.New("user could not be created")
 	}
 	return nil
-}
-
-func userExists(user *User) bool {
-	return user.ID != 0
 }

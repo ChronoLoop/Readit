@@ -51,12 +51,10 @@ func UpdatePostTotalVoteValue(post *Post, val int) error {
 	return nil
 }
 
-func FindPostById(id uint) (Post, bool) {
+func FindPostById(id uint) (Post, error) {
 	post := Post{}
-	db.Connection.Where("id = ?", id).First(&post)
-	return post, postExists(&post)
-}
-
-func postExists(post *Post) bool {
-	return post.ID != 0
+	if err := db.Connection.Where("id = ?", id).First(&post).Error; err != nil {
+		return post, errors.New("post does not exist")
+	}
+	return post, nil
 }

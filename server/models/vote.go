@@ -24,10 +24,12 @@ func CreatePostVote(postVote *PostVote) error {
 	return nil
 }
 
-func FindPostVoteById(postId uint, userId uint) (PostVote, bool) {
+func FindPostVoteById(postId uint, userId uint) (PostVote, error) {
 	postVote := PostVote{}
-	db.Connection.Where("post_id = ? AND user_id = ?", postId, userId).First(&postVote)
-	return postVote, postVoteExists(&postVote)
+	if err := db.Connection.Where("post_id = ? AND user_id = ?", postId, userId).First(&postVote).Error; err != nil {
+		return postVote, err
+	}
+	return postVote, nil
 }
 
 func UpdatePostVoteValue(postVote *PostVote, val int) error {
@@ -36,11 +38,3 @@ func UpdatePostVoteValue(postVote *PostVote, val int) error {
 	}
 	return nil
 }
-
-func postVoteExists(p *PostVote) bool {
-	return p.UserID != 0 && p.PostID != 0
-}
-
-// func (p *PostVote) AfterCreate(tx *gorm.DB) (err error){
-
-// }

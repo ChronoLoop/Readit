@@ -75,7 +75,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, userExists := models.FindUserByName(user.Username); userExists {
+	if _, err := models.FindUserByName(user.Username); err == nil {
 		common.RespondError(w, http.StatusBadRequest, "Username already exists")
 		return
 	}
@@ -98,9 +98,9 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, userExists := models.FindUserByName(user.Username)
+	dbUser, dbUserErr := models.FindUserByName(user.Username)
 
-	if !userExists {
+	if dbUserErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
@@ -153,8 +153,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, userExists := models.FindUserById(issuer)
-	if !userExists {
+	if _, err := models.FindUserById(issuer); err != nil {
 		http.SetCookie(w, &http.Cookie{
 			Name:    refreshTokenCookieName,
 			Value:   "",

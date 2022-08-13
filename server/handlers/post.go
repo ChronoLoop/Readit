@@ -76,8 +76,8 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	subreddit := models.Subreddit{}
-	if _, exists := models.FindSubredditById(uint(subredditId)); !exists {
-		common.RespondError(w, http.StatusBadRequest, "Subreddit does not exist")
+	if _, err := models.FindSubredditById(uint(subredditId)); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
