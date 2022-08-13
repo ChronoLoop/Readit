@@ -65,7 +65,7 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 				common.RespondError(w, http.StatusBadRequest, err.Error())
 				return
 			}
-			if err := models.UpdatePostVoteCount(&post, vote.Value); err != nil {
+			if err := models.UpdatePostTotalVoteValue(&post, vote.Value); err != nil {
 				common.RespondError(w, http.StatusInternalServerError, err.Error())
 				return
 			}
@@ -77,7 +77,7 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		if err := models.UpdatePostVoteCount(&post, diffValue); err != nil {
+		if err := models.UpdatePostTotalVoteValue(&post, diffValue); err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}

@@ -10,23 +10,23 @@ import (
 
 type Post struct {
 	gorm.Model
-	Title       string    `json:"title" validate:"required,min=1"`
-	VoteCount   int       `json:"voteCount"`
-	User        User      `validate:"-"`
-	UserID      int       `json:"userId" validate:"required"`
-	Subreddit   Subreddit `validate:"-"`
-	SubredditID int       `json:"subredditId" validate:"required"`
-	Text        string    `json:"text" validate:"required,min=1"`
+	Title          string    `json:"title" validate:"required,min=1"`
+	TotalVoteValue int       `json:"totalVoteValue"`
+	User           User      `validate:"-"`
+	UserID         int       `json:"userId" validate:"required"`
+	Subreddit      Subreddit `validate:"-"`
+	SubredditID    int       `json:"subredditId" validate:"required"`
+	Text           string    `json:"text" validate:"required,min=1"`
 }
 
 type PostSerializer struct {
-	ID        uint                `json:"id"`
-	Title     string              `json:"title"`
-	VoteCount int                 `json:"voteCount"`
-	Text      string              `json:"text"`
-	CreatedAt time.Time           `json:"createAt"`
-	User      UserSerializer      `json:"user"`
-	Subreddit SubRedditSerializer `json:"subreddit"`
+	ID             uint                `json:"id"`
+	Title          string              `json:"title"`
+	TotalVoteValue int                 `json:"totalVoteValue"`
+	Text           string              `json:"text"`
+	CreatedAt      time.Time           `json:"createAt"`
+	User           UserSerializer      `json:"user"`
+	Subreddit      SubRedditSerializer `json:"subreddit"`
 }
 
 func CreatePost(post *Post) error {
@@ -44,8 +44,8 @@ func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
 	return posts, nil
 }
 
-func UpdatePostVoteCount(post *Post, val int) error {
-	if err := db.Connection.Model(post).Update("vote_count", gorm.Expr("vote_count + ?", val)).Error; err != nil {
+func UpdatePostTotalVoteValue(post *Post, val int) error {
+	if err := db.Connection.Model(post).Update("total_vote_value", gorm.Expr("total_vote_value + ?", val)).Error; err != nil {
 		return errors.New("post vote count could not be updated")
 	}
 	return nil

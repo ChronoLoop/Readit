@@ -18,13 +18,13 @@ func CreateResponsePosts(posts *[]models.Post) []models.PostSerializer {
 		userSerialized := CreateResponseUser(&post.User)
 		subredditSerialized := CreateResponseSubreddit(&post.Subreddit)
 		postSerialized := models.PostSerializer{
-			ID:        post.ID,
-			Title:     post.Title,
-			VoteCount: post.VoteCount,
-			Text:      post.Text,
-			CreatedAt: post.CreatedAt,
-			User:      userSerialized,
-			Subreddit: subredditSerialized,
+			ID:             post.ID,
+			Title:          post.Title,
+			TotalVoteValue: post.TotalVoteValue,
+			Text:           post.Text,
+			CreatedAt:      post.CreatedAt,
+			User:           userSerialized,
+			Subreddit:      subredditSerialized,
 		}
 		postsResponse = append(postsResponse, postSerialized)
 	}

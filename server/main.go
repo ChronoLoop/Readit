@@ -20,7 +20,7 @@ func main() {
 	}
 
 	db.Initialize()
-	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVotes{})
+	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{})
 	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{})
 
 	r := chi.NewRouter()
