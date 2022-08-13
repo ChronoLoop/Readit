@@ -21,7 +21,7 @@ func main() {
 
 	db.Initialize()
 	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVotes{})
-	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVotes{})
+	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{})
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -29,6 +29,7 @@ func main() {
 		routes.UserRouter(r)
 		routes.SubredditRouter(r)
 		routes.PostRouter(r)
+		routes.VoteRouter(r)
 	})
 
 	http.ListenAndServe(":5000", r)

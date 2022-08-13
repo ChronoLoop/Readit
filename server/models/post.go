@@ -19,15 +19,6 @@ type Post struct {
 	Text        string    `json:"text" validate:"required,min=1"`
 }
 
-type PostVotes struct {
-	Post      Post `validate:"-"`
-	PostID    int  `json:"postId" gorm:"primaryKey;autoIncrement:false"`
-	User      User `validate:"-"`
-	UserID    int  `json:"userId" gorm:"primaryKey;autoIncrement:false"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
 type PostSerializer struct {
 	ID        uint                `json:"id"`
 	Title     string              `json:"title"`
@@ -51,4 +42,21 @@ func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil
+}
+
+func UpdatePostVoteCount(post *Post, val int) error {
+	if err := db.Connection.Model(post).Update("vote_count", gorm.Expr("vote_count + ?", val)).Error; err != nil {
+		return errors.New("post vote count could not be updated")
+	}
+	return nil
+}
+
+func FindPostById(id uint) (Post, bool) {
+	post := Post{}
+	db.Connection.Where("id = ?", id).First(&post)
+	return post, postExists(&post)
+}
+
+func postExists(post *Post) bool {
+	return post.ID != 0
 }
