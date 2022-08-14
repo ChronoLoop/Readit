@@ -46,7 +46,7 @@ func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
 
 func UpdatePostTotalVoteValue(post *Post, val int) error {
 	if err := db.Connection.Model(post).Update("total_vote_value", gorm.Expr("total_vote_value + ?", val)).Error; err != nil {
-		return errors.New("post vote count could not be updated")
+		return errors.New("post vote total value could not be updated")
 	}
 	return nil
 }

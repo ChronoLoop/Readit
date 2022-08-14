@@ -55,3 +55,10 @@ func UpdatePostCommentText(postComment *PostComment, text string) error {
 	}
 	return nil
 }
+
+func UpdatePostCommentTotalVoteValue(postComment *PostComment, val int) error {
+	if err := db.Connection.Model(postComment).Update("total_vote_value", gorm.Expr("total_vote_value + ?", val)).Error; err != nil {
+		return errors.New("comment vote total value could not be updated")
+	}
+	return nil
+}

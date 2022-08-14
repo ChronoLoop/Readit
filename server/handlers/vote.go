@@ -84,21 +84,51 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		return
 
-		// 	case "comment":
-		// 		comment, err := models.FindPostCommentById(vote.ID)
-		// 		if err != nil {
-		// 			common.RespondError(w, http.StatusBadRequest, err.Error())
-		// 			return
-		// 		}
-		// 		issuer, err := middleware.GetJwtClaimsIssuer(r)
+	case "comment":
+		comment, err := models.FindPostCommentById(vote.ID)
+		if err != nil {
+			common.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		issuer, err := middleware.GetJwtClaimsIssuer(r)
 
-		// 		if err != nil {
-		// 			w.WriteHeader(http.StatusInternalServerError)
-		// 			return
-		// 		}
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		prevCommentVote, prevCommentVoteErr := models.FindPostCommentVoteById(comment.ID, uint(issuer))
+		if prevCommentVoteErr != nil {
+			commentVote := models.PostCommentVote{
+				Vote: models.Vote{
+					UserID: uint(issuer),
+					Value:  vote.Value,
+				},
+				PostCommentID: comment.ID,
+			}
 
-		// 		w.WriteHeader(http.StatusCreated)
-		// 		return
+			if err := models.CreatePostCommentVote(&commentVote); err != nil {
+				common.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if err := models.UpdatePostCommentTotalVoteValue(&comment, vote.Value); err != nil {
+				common.RespondError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+			return
+		}
+		diffValue := vote.Value - prevCommentVote.Value
+		if err := models.UpdatePostCommentVoteValue(&prevCommentVote, vote.Value); err != nil {
+			common.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		if err := models.UpdatePostCommentTotalVoteValue(&comment, diffValue); err != nil {
+			common.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		return
+
 	default:
 		common.RespondError(w, http.StatusBadRequest, "invalid vote type")
 		return

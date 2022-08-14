@@ -21,7 +21,7 @@ func main() {
 
 	db.Initialize()
 	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{}, &models.PostComment{})
-	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{}, &models.PostComment{})
+	db.Connection.AutoMigrate(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{}, &models.PostCommentVote{}, &models.PostComment{})
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
