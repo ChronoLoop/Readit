@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ikevinws/reddit-clone/common"
@@ -45,8 +44,7 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		AcceessTokenClaims := middleware.GetRequestAccessTokenClaims(r)
-		issuer, err := strconv.Atoi(AcceessTokenClaims.Issuer)
+		issuer, err := middleware.GetJwtClaimsIssuer(r)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -86,12 +84,21 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		return
 
-	// case "comment":
-	// 	if err != nil {
-	// 		common.RespondError(w, http.StatusBadRequest, err.Error())
-	// 		return
-	// 	}
-	// 	return
+		// 	case "comment":
+		// 		comment, err := models.FindPostCommentById(vote.ID)
+		// 		if err != nil {
+		// 			common.RespondError(w, http.StatusBadRequest, err.Error())
+		// 			return
+		// 		}
+		// 		issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+		// 		if err != nil {
+		// 			w.WriteHeader(http.StatusInternalServerError)
+		// 			return
+		// 		}
+
+		// 		w.WriteHeader(http.StatusCreated)
+		// 		return
 	default:
 		common.RespondError(w, http.StatusBadRequest, "invalid vote type")
 		return

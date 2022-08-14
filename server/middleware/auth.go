@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt"
@@ -55,4 +56,9 @@ func IsAuthorized(next http.Handler) http.Handler {
 
 func GetRequestAccessTokenClaims(r *http.Request) *jwt.StandardClaims {
 	return r.Context().Value(accessTokenClaimsContextKey).(*jwt.StandardClaims)
+}
+
+func GetJwtClaimsIssuer(r *http.Request) (int, error) {
+	AcceessTokenClaims := GetRequestAccessTokenClaims(r)
+	return strconv.Atoi(AcceessTokenClaims.Issuer)
 }

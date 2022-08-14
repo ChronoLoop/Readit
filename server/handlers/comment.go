@@ -19,8 +19,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	AcceessTokenClaims := middleware.GetRequestAccessTokenClaims(r)
-	issuer, err := strconv.Atoi(AcceessTokenClaims.Issuer)
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
