@@ -11,7 +11,7 @@ import (
 type Post struct {
 	gorm.Model
 	Title          string    `json:"title" validate:"required,min=1"`
-	TotalVoteValue int       `json:"totalVoteValue"`
+	TotalVoteValue int       `json:"-"`
 	User           User      `validate:"-"`
 	UserID         int       `json:"userId" validate:"required"`
 	Subreddit      Subreddit `validate:"-"`

@@ -56,9 +56,11 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 		prevPostVote, prevPostVoteErr := models.FindPostVoteById(post.ID, uint(issuer))
 		if prevPostVoteErr != nil {
 			postVote := models.PostVote{
+				Vote: models.Vote{
+					UserID: uint(issuer),
+					Value:  vote.Value,
+				},
 				PostID: post.ID,
-				UserID: uint(issuer),
-				Value:  vote.Value,
 			}
 
 			if err := models.CreatePostVote(&postVote); err != nil {
