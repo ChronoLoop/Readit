@@ -1,0 +1,16 @@
+@use 'colors' as *;
+
+@mixin spread-map($map: ()) {
+    @each $key, $value in $map {
+        #{$key}: $value;
+    }
+}
+
+.theme {
+    &_light {
+        @include spread-map($theme-map-light);
+    }
+    &_dark {
+        @include spread-map($theme-map-dark);
+    }
+}

@@ -10,7 +10,7 @@ import (
 type User struct {
 	gorm.Model
 	Username string `json:"username" gorm:"unique;not null" validate:"required,min=4,max=20,alphanum"`
-	Password string `json:"password" validate:"required,min=4,max=20"`
+	Password string `json:"password" validate:"required,min=8,max=20"`
 }
 
 type UserSerializer struct {

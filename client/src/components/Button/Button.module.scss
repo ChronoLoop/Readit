@@ -1,0 +1,59 @@
+@use '@/styles/colors' as *;
+@use '@/styles/animation';
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 0.2rem;
+    background-color: transparent;
+    color: theme-var($body-text);
+    font-weight: 600;
+    font-size: inherit;
+    height: 1.8rem;
+    padding: 0.2rem 0.3rem;
+    user-select: none;
+
+    &:hover {
+        cursor: pointer;
+        background-color: theme-var($color-opac-w-4);
+    }
+    &:active {
+        background-color: theme-var($color-opac-w-5);
+    }
+    &:disabled {
+        cursor: not-allowed;
+        background-color: theme-var($color-opac-w-3);
+        color: theme-var($color-opac-w-8);
+    }
+
+    &_no_padding {
+        padding: 0;
+    }
+}
+
+.primary {
+    background-color: theme-var($purple-background);
+
+    &:hover {
+        background-color: theme-var($purple-background-hover);
+    }
+    &:active {
+        background-color: theme-var($purple-background-active);
+    }
+}
+
+.secondary {
+    background-color: theme-var($secondary-background);
+    &:hover {
+        background-color: theme-var($secondary-background-hover);
+    }
+    &:active {
+        background-color: theme-var($secondary-background-active);
+    }
+}
+
+.spinner {
+    @include animation.spin;
+}

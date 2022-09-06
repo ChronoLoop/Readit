@@ -1,0 +1,82 @@
+$black: --black;
+$post-border: --post-border;
+$body-text: --body-text;
+$primary-background: --primary-background;
+
+$secondary-background: --secondary-background;
+$secondary-background-hover: --secondary-background-hover;
+$secondary-background-active: --secondary-background-active;
+
+$purple-background: --purple-background;
+$purple-background-hover: --purple-background-hover;
+$purple-background-active: --purple-background-active;
+
+$color-opac-w-1: --color-opac-w-1;
+$color-opac-w-2: --color-opac-w-2;
+$color-opac-w-3: --color-opac-w-3;
+$color-opac-w-4: --color-opac-w-4;
+$color-opac-w-5: --color-opac-w-5;
+$color-opac-w-6: --color-opac-w-6;
+$color-opac-w-7: --color-opac-w-7;
+$color-opac-w-8: --color-opac-w-8;
+
+$theme-map-light: (
+    $body-text: #d7dadc,
+    $black: #030303,
+    $post-border: #343536,
+
+    $primary-background: #1a1a1b,
+
+    $secondary-background: #3a3a3d,
+    $secondary-background-hover: #464649,
+    $secondary-background-active: #525254,
+
+    $purple-background: #9147ff,
+    $purple-background-hover: #772ce8,
+    $purple-background-active: #5c16c5,
+
+    $color-opac-w-1: hsla(0, 0%, 100%, 0.05),
+    $color-opac-w-2: hsla(0, 0%, 100%, 0.1),
+    $color-opac-w-3: hsla(0, 0%, 100%, 0.15),
+    $color-opac-w-4: hsla(0, 0%, 100%, 0.2),
+    $color-opac-w-5: hsla(0, 0%, 100%, 0.25),
+    $color-opac-w-6: hsla(0, 0%, 100%, 0.3),
+    $color-opac-w-7: hsla(0, 0%, 100%, 0.35),
+    $color-opac-w-8: hsla(0, 0%, 100%, 0.45),
+);
+
+$theme-map-dark: (
+    $body-text: #d7dadc,
+    $black: #030303,
+    $post-border: #343536,
+
+    $primary-background: #1a1a1b,
+
+    $secondary-background: #3a3a3d,
+    $secondary-background-hover: #464649,
+    $secondary-background-active: #525254,
+
+    $purple-background: #9147ff,
+    $purple-background-hover: #772ce8,
+    $purple-background-active: #5c16c5,
+
+    $color-opac-w-1: hsla(0, 0%, 100%, 0.05),
+    $color-opac-w-2: hsla(0, 0%, 100%, 0.1),
+    $color-opac-w-3: hsla(0, 0%, 100%, 0.15),
+    $color-opac-w-4: hsla(0, 0%, 100%, 0.2),
+    $color-opac-w-5: hsla(0, 0%, 100%, 0.25),
+    $color-opac-w-6: hsla(0, 0%, 100%, 0.3),
+    $color-opac-w-7: hsla(0, 0%, 100%, 0.35),
+    $color-opac-w-8: hsla(0, 0%, 100%, 0.45),
+);
+
+@function theme-var($key, $fallback: null, $map: $theme-map-light) {
+    @if not map-has-key($map, $key) {
+        @error "key: '#{$key}', is not a key in map: #{$map}";
+    }
+    @if ($fallback) {
+        @return var($key, $fallback);
+    } @else {
+        @return var($key);
+    }
+}
