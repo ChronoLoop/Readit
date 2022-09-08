@@ -1,0 +1,71 @@
+@use '@/styles/colors' as *;
+
+.label_container {
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+
+    label {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+}
+
+.input_container {
+    position: relative;
+    input {
+        font-family: inherit;
+        width: 100%;
+        color: theme-var($body-text);
+        background-color: theme-var($secondary-background);
+        appearance: none;
+        border-style: solid;
+        border-radius: 0.2rem;
+        padding: 0.3rem 0.8rem;
+        border-width: 0.1rem;
+        background-clip: padding-box;
+        border-color: theme-var($secondary-background);
+        transition: border 0.12s ease-in, background-color 0.12s ease-in;
+
+        &:hover {
+            border-color: theme-var($secondary-background-active);
+        }
+        &:focus {
+            outline: none;
+            border-color: theme-var($purple-background);
+            background-color: theme-var($black);
+        }
+        &:disabled {
+            cursor: not-allowed;
+            &:hover {
+                border-color: theme-var($secondary-background);
+            }
+        }
+    }
+}
+input.password {
+    padding-right: 3rem;
+}
+
+.password_icon {
+    &_container {
+        background-color: transparent;
+        height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    &_button {
+        margin-right: 0.25rem;
+    }
+}
+
+.error {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    line-height: 1rem;
+}

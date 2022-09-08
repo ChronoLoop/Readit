@@ -12,10 +12,6 @@ import (
 
 type contextKey string
 
-func (c contextKey) String() string {
-	return "middleware context key " + string(c)
-}
-
 const accessTokenClaimsContextKey = contextKey("AccessTokenClaims")
 
 func IsAuthorized(next http.Handler) http.Handler {

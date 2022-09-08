@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/golang-jwt/jwt"
 	"github.com/ikevinws/reddit-clone/common"
+	"github.com/ikevinws/reddit-clone/middleware"
 	"github.com/ikevinws/reddit-clone/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -164,6 +165,25 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendTokens(w, issuer)
+}
+
+func UserMe(w http.ResponseWriter, r *http.Request) {
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user, err := models.FindUserById(issuer)
+
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, "Could not find user")
+		return
+	}
+
+	responseUser := CreateResponseUser(&user)
+	common.RespondJSON(w, http.StatusOK, responseUser)
 }
 
 func CreateResponseUser(user *models.User) models.UserSerializer {
