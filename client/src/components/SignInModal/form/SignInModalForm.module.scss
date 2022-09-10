@@ -1,0 +1,14 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.button {
+    min-height: 1.675rem;
+}
+
+.error {
+    font-size: 0.8rem;
+    line-height: 1rem;
+}

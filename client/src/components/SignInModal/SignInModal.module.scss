@@ -34,12 +34,6 @@
     }
 }
 
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
 .header {
     display: flex;
     align-items: center;
@@ -89,13 +83,4 @@
             margin-bottom: -0.1rem;
         }
     }
-}
-
-.button {
-    min-height: 1.675rem;
-}
-
-.error {
-    font-size: 0.8rem;
-    line-height: 1rem;
 }

@@ -1,14 +1,12 @@
 import { Button } from '@/components';
-import { ComponentProps, useState } from 'react';
+import { useState } from 'react';
 import styles from './AuthControls.module.scss';
 import { SignInModal } from '@/components';
-
-type ModalModes = ComponentProps<typeof SignInModal>['currentMode'];
+import { ModalModesValues } from '../SignInModal/SignInModal';
 
 const AuthControls = () => {
-    const [currentModalMode, setCurrentModalMode] = useState<ModalModes | null>(
-        null
-    );
+    const [currentModalMode, setCurrentModalMode] =
+        useState<ModalModesValues | null>(null);
 
     const handleLogInClick = () => {
         setCurrentModalMode('LOGIN');
