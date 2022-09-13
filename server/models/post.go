@@ -10,23 +10,23 @@ import (
 
 type Post struct {
 	gorm.Model
-	Title          string    `json:"title" validate:"required,min=1"`
-	TotalVoteValue int       `json:"-"`
-	User           User      `validate:"-"`
-	UserID         int       `json:"userId" validate:"required"`
-	Subreddit      Subreddit `validate:"-"`
-	SubredditID    int       `json:"subredditId" validate:"required"`
-	Text           string    `json:"text" validate:"required,min=1"`
+	Title       string    `json:"title" validate:"required,min=1"`
+	User        User      `validate:"-"`
+	UserID      int       `json:"userId" validate:"required"`
+	Subreddit   Subreddit `validate:"-"`
+	SubredditID int       `json:"subredditId" validate:"required"`
+	Text        string    `json:"text" validate:"required,min=1"`
 }
 
 type PostSerializer struct {
-	ID             uint                `json:"id"`
-	Title          string              `json:"title"`
-	TotalVoteValue int                 `json:"totalVoteValue"`
-	Text           string              `json:"text"`
-	CreatedAt      time.Time           `json:"createAt"`
-	User           UserSerializer      `json:"user"`
-	Subreddit      SubRedditSerializer `json:"subreddit"`
+	ID               uint                `json:"id"`
+	Title            string              `json:"title"`
+	TotalVoteValue   int64               `json:"totalVoteValue"`
+	Text             string              `json:"text"`
+	CreatedAt        time.Time           `json:"createAt"`
+	User             UserSerializer      `json:"user"`
+	Subreddit        SubRedditSerializer `json:"subreddit"`
+	NumberOfComments int64               `json:"numberOfComments"`
 }
 
 func CreatePost(post *Post) error {
@@ -36,19 +36,20 @@ func CreatePost(post *Post) error {
 	return nil
 }
 
-func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
+func GetPosts() ([]Post, error) {
 	posts := []Post{}
 	if err := db.Connection.Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
-		return posts, errors.New("could not get posts")
+		return posts, errors.New("posts could not be obtained")
 	}
 	return posts, nil
 }
 
-func UpdatePostTotalVoteValue(post *Post, val int) error {
-	if err := db.Connection.Model(post).Update("total_vote_value", gorm.Expr("total_vote_value + ?", val)).Error; err != nil {
-		return errors.New("post vote total value could not be updated")
+func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
+	posts := []Post{}
+	if err := db.Connection.Where("subreddit_id = ?", subredditId).Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
+		return posts, errors.New("could not get posts")
 	}
-	return nil
+	return posts, nil
 }
 
 func FindPostById(id uint) (Post, error) {

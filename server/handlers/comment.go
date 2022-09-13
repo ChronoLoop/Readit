@@ -71,12 +71,17 @@ func CreateResponseComments(postComments *[]models.PostComment) []models.PostCom
 	for _, postComment := range *postComments {
 		userSerialized := CreateResponseUser(&postComment.User)
 		postCommentSerialized := models.PostCommentSerializer{
-			ID:             postComment.ID,
-			TotalVoteValue: postComment.TotalVoteValue,
-			Text:           postComment.Text,
-			CreatedAt:      postComment.CreatedAt,
-			User:           userSerialized,
+			ID:        postComment.ID,
+			Text:      postComment.Text,
+			CreatedAt: postComment.CreatedAt,
+			User:      userSerialized,
 		}
+
+		totalVoteValue, err := models.GetPostCommentTotalVoteValue(postComment.ID)
+		if err == nil {
+			postCommentSerialized.TotalVoteValue = totalVoteValue
+		}
+
 		postCommentsResponse = append(postCommentsResponse, postCommentSerialized)
 	}
 	return postCommentsResponse

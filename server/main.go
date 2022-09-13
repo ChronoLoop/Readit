@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -14,10 +13,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("../.env")
-	if os.Getenv("SERVER_ENV") == "development" && err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load("../.env")
 
 	db.Initialize()
 	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreddit{}, &models.Post{}, &models.PostVote{}, &models.PostComment{})
@@ -33,5 +29,5 @@ func main() {
 		routes.CommentRouter(r)
 	})
 
-	http.ListenAndServe(":5000", r)
+	http.ListenAndServe(":"+os.Getenv("PORT"), r)
 }

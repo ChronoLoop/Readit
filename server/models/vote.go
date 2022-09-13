@@ -70,3 +70,19 @@ func UpdatePostCommentVoteValue(postCommentVote *PostCommentVote, val int) error
 	}
 	return nil
 }
+
+func GetPostTotalVoteValue(postId uint) (int64, error) {
+	var total int64
+	if err := db.Connection.Model(&PostVote{}).Where("post_id = ?", postId).Select("sum(value)").Row().Scan(&total); err != nil {
+		return total, errors.New("post total vote value could not be obtained")
+	}
+	return total, nil
+}
+
+func GetPostCommentTotalVoteValue(postCommentId uint) (int64, error) {
+	var total int64
+	if err := db.Connection.Model(&PostCommentVote{}).Where("post_comment_id = ?", postCommentId).Select("sum(value)").Row().Scan(&total); err != nil {
+		return total, errors.New("post total vote value could not be obtained")
+	}
+	return total, nil
+}

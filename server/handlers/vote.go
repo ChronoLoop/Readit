@@ -65,22 +65,16 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 				common.RespondError(w, http.StatusBadRequest, err.Error())
 				return
 			}
-			if err := models.UpdatePostTotalVoteValue(&post, vote.Value); err != nil {
-				common.RespondError(w, http.StatusInternalServerError, err.Error())
-				return
-			}
+
 			w.WriteHeader(http.StatusCreated)
 			return
 		}
-		diffValue := vote.Value - prevPostVote.Value
+
 		if err := models.UpdatePostVoteValue(&prevPostVote, vote.Value); err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		if err := models.UpdatePostTotalVoteValue(&post, diffValue); err != nil {
-			common.RespondError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+
 		w.WriteHeader(http.StatusCreated)
 		return
 
@@ -110,19 +104,11 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 				common.RespondError(w, http.StatusBadRequest, err.Error())
 				return
 			}
-			if err := models.UpdatePostCommentTotalVoteValue(&comment, vote.Value); err != nil {
-				common.RespondError(w, http.StatusInternalServerError, err.Error())
-				return
-			}
+
 			w.WriteHeader(http.StatusCreated)
 			return
 		}
-		diffValue := vote.Value - prevCommentVote.Value
 		if err := models.UpdatePostCommentVoteValue(&prevCommentVote, vote.Value); err != nil {
-			common.RespondError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		if err := models.UpdatePostCommentTotalVoteValue(&comment, diffValue); err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}

@@ -18,13 +18,20 @@ func CreateResponsePosts(posts *[]models.Post) []models.PostSerializer {
 		userSerialized := CreateResponseUser(&post.User)
 		subredditSerialized := CreateResponseSubreddit(&post.Subreddit)
 		postSerialized := models.PostSerializer{
-			ID:             post.ID,
-			Title:          post.Title,
-			TotalVoteValue: post.TotalVoteValue,
-			Text:           post.Text,
-			CreatedAt:      post.CreatedAt,
-			User:           userSerialized,
-			Subreddit:      subredditSerialized,
+			ID:        post.ID,
+			Title:     post.Title,
+			Text:      post.Text,
+			CreatedAt: post.CreatedAt,
+			User:      userSerialized,
+			Subreddit: subredditSerialized,
+		}
+		numberOfComments, err := models.GetPostCommentCount(post.ID)
+		if err == nil {
+			postSerialized.NumberOfComments = numberOfComments
+		}
+		totalVoteValue, err := models.GetPostTotalVoteValue(post.ID)
+		if err == nil {
+			postSerialized.TotalVoteValue = totalVoteValue
 		}
 		postsResponse = append(postsResponse, postSerialized)
 	}
@@ -64,7 +71,13 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 func GetPosts(w http.ResponseWriter, r *http.Request) {
 	subredditIdParam := r.URL.Query().Get("subredditId")
 	if subredditIdParam == "" {
-		common.RespondError(w, http.StatusBadRequest, "Could not get posts")
+		posts, err := models.GetPosts()
+		if err != nil {
+			common.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		postsResponse := CreateResponsePosts(&posts)
+		common.RespondJSON(w, http.StatusOK, postsResponse)
 		return
 	}
 
@@ -74,13 +87,12 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreddit := models.Subreddit{}
 	if _, err := models.FindSubredditById(uint(subredditId)); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	posts, err := models.GetPostsBySubredditId(subreddit.ID)
+	posts, err := models.GetPostsBySubredditId(uint(subredditId))
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return

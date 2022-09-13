@@ -10,17 +10,16 @@ import (
 
 type PostComment struct {
 	gorm.Model
-	TotalVoteValue int    `json:"-"`
-	Post           Post   `validate:"-"`
-	PostID         int    `json:"postId" validate:"required"`
-	User           User   `validate:"-"`
-	UserID         int    `json:"userId" validate:"required"`
-	Text           string `json:"text" validate:"required,min=1"`
+	Post   Post   `validate:"-"`
+	PostID int    `json:"postId" validate:"required"`
+	User   User   `validate:"-"`
+	UserID int    `json:"userId" validate:"required"`
+	Text   string `json:"text" validate:"required,min=1"`
 }
 
 type PostCommentSerializer struct {
 	ID             uint           `json:"id"`
-	TotalVoteValue int            `json:"totalVoteValue"`
+	TotalVoteValue int64          `json:"totalVoteValue"`
 	Text           string         `json:"text"`
 	CreatedAt      time.Time      `json:"createAt"`
 	User           UserSerializer `json:"user"`
@@ -56,9 +55,8 @@ func UpdatePostCommentText(postComment *PostComment, text string) error {
 	return nil
 }
 
-func UpdatePostCommentTotalVoteValue(postComment *PostComment, val int) error {
-	if err := db.Connection.Model(postComment).Update("total_vote_value", gorm.Expr("total_vote_value + ?", val)).Error; err != nil {
-		return errors.New("comment vote total value could not be updated")
-	}
-	return nil
+func GetPostCommentCount(postId uint) (int64, error) {
+	var count int64
+	db.Connection.Model(&PostComment{}).Where("post_id = ?", postId).Count(&count)
+	return count, nil
 }
