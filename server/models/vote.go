@@ -21,10 +21,20 @@ type PostVote struct {
 	PostID uint `json:"postId" gorm:"primaryKey;autoIncrement:false"`
 }
 
+type PostVoteSerializer struct {
+	Value  int  `json:"value"`
+	UserID uint `json:"userId"`
+}
+
 type PostCommentVote struct {
 	Vote
 	PostComment   PostComment `validate:"-"`
 	PostCommentID uint        `json:"postCommentId" gorm:"primaryKey;autoIncrement:false"`
+}
+
+type PostCommentVoteSerializer struct {
+	Value  int  `json:"value"`
+	UserID uint `json:"userId"`
 }
 
 func CreatePostVote(postVote *PostVote) error {

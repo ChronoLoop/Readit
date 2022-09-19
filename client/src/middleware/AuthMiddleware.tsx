@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 
 import { getUserMe } from '@/services';
 import useUserStore from '@/store/user';
@@ -16,19 +16,22 @@ const AuthMiddleware = ({
     notAuthContent,
 }: AuthMiddlewareProps) => {
     const setUser = useUserStore((s) => s.setUser);
-    const { isLoading, isError } = useQuery('auth-user', getUserMe, {
+    const queryClient = useQueryClient();
+    const { isFetching, isError } = useQuery('auth-user', getUserMe, {
         retry: false,
         onSuccess: (data) => {
             setUser(data);
+            queryClient.invalidateQueries('posts');
         },
         onError: () => {
             setUser(null);
+            queryClient.invalidateQueries('posts');
         },
     });
 
-    if (isLoading) {
+    if (isFetching) {
         return <>{loadingContent}</>;
-    } else if (isError) {
+    } else if (isError && notAuthContent) {
         return <>{notAuthContent}</>;
     }
 

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { getAccessToken, refreshAccessToken } from './auth';
 
 const BASE_URL = '/api/';
@@ -14,13 +14,17 @@ export const axiosPrivate = axios.create({
     baseURL: BASE_URL,
 });
 
+const setAuthorizationHeader = (req: AxiosRequestConfig<any>) => {
+    const accessToken = getAccessToken();
+    if (accessToken && req.headers) {
+        const bearer = `Bearer ${accessToken}`;
+        req.headers['Authorization'] = bearer;
+    }
+};
+
 axiosPrivate.interceptors.request.use(
-    (req) => {
-        if (req.headers) {
-            const accessToken = getAccessToken();
-            const bearer = `Bearer ${accessToken}`;
-            req.headers['Authorization'] = bearer;
-        }
+    async (req) => {
+        setAuthorizationHeader(req);
         return req;
     },
     (error) => {

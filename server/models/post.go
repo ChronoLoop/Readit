@@ -27,6 +27,7 @@ type PostSerializer struct {
 	User             UserSerializer      `json:"user"`
 	Subreddit        SubRedditSerializer `json:"subreddit"`
 	NumberOfComments int64               `json:"numberOfComments"`
+	UserVote         *PostVoteSerializer `json:"userVote,omitempty"`
 }
 
 func CreatePost(post *Post) error {

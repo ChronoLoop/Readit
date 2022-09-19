@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -191,4 +192,26 @@ func CreateResponseUser(user *models.User) models.UserSerializer {
 		ID:       user.ID,
 		Username: user.Username,
 	}
+}
+
+func GetAccessTokenIssuer(r *http.Request) (int, error) {
+	authHeader := r.Header.Get("Authorization")
+
+	splitAuthHeader := strings.Split(authHeader, "Bearer ")
+	if len(splitAuthHeader) != 2 {
+		return 0, errors.New("could not find issuer")
+	}
+	authTokenStr := splitAuthHeader[1]
+
+	token, err := jwt.ParseWithClaims(authTokenStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		secretKey := os.Getenv("JWT_SECRET")
+		return []byte(secretKey), nil
+	})
+
+	if err != nil || !token.Valid {
+		return 0, errors.New("claims invalid")
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+	return strconv.Atoi(claims.Issuer)
 }

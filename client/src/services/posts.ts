@@ -1,6 +1,6 @@
-import { axiosPublic } from './apiClient';
+import { axiosPrivate } from './apiClient';
 
-interface Post {
+export interface PostData {
     id: number;
     title: string;
     totalVoteValue: number;
@@ -14,11 +14,16 @@ interface Post {
         id: number;
         name: string;
     };
+    numberOfComments: number;
+    userVote?: {
+        value: number;
+        userId: number;
+    };
 }
 
-type GetPostsResponse = Post[];
+export type GetPostsResponse = PostData[];
 
 export const getPosts = async () => {
-    const response = await axiosPublic.get<GetPostsResponse>('post');
+    const response = await axiosPrivate.get<GetPostsResponse>('post');
     return response.data;
 };

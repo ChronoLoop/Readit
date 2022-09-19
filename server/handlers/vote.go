@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ikevinws/reddit-clone/common"
@@ -18,6 +19,20 @@ func checkVoteValue(voteValue int) bool {
 		}
 	}
 	return false
+}
+
+func createPostVoteResponse(postVote *models.PostVote) models.PostVoteSerializer {
+	return models.PostVoteSerializer{
+		Value:  postVote.Value,
+		UserID: postVote.UserID,
+	}
+}
+
+func createPostCommentVoteResponse(postCommentVote *models.PostCommentVote) models.PostCommentVoteSerializer {
+	return models.PostCommentVoteSerializer{
+		Value:  postCommentVote.Value,
+		UserID: postCommentVote.UserID,
+	}
 }
 
 func CreateVote(w http.ResponseWriter, r *http.Request) {
@@ -113,6 +128,54 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
+		return
+
+	default:
+		common.RespondError(w, http.StatusBadRequest, "invalid vote type")
+		return
+	}
+}
+
+func GetVote(w http.ResponseWriter, r *http.Request) {
+	voteType := chi.URLParam(r, "voteType")
+	voteTypeIdParam := r.URL.Query().Get("id")
+
+	if voteTypeIdParam == "" {
+		common.RespondError(w, http.StatusBadRequest, "No vote id")
+		return
+	}
+
+	voteTypeId, voteTypeIdErr := strconv.Atoi(voteTypeIdParam)
+	if voteTypeIdErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "Could not get vote")
+		return
+	}
+
+	issuer, issuerErr := GetAccessTokenIssuer(r)
+	if issuerErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "Could not get vote")
+		return
+	}
+
+	switch voteType {
+	case "post":
+		postVote, err := models.FindPostVoteById(uint(voteTypeId), uint(issuer))
+		postVoteResponse := createPostVoteResponse(&postVote)
+		if err != nil {
+			common.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		common.RespondJSON(w, http.StatusOK, postVoteResponse)
+		return
+
+	case "comment":
+		commentVote, err := models.FindPostCommentVoteById(uint(voteTypeId), uint(issuer))
+		commentVoteResponse := createPostCommentVoteResponse(&commentVote)
+		if err != nil {
+			common.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 		return
 
 	default:
