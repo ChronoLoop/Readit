@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { axiosPublic, axiosPrivate, ErrorResponse } from './apiClient';
+import { axiosPublic, axiosPrivate } from './apiClient';
 
 let accessToken = '';
 
@@ -21,6 +20,7 @@ export interface SignInResponse {
 
 export interface GetUserMeResponse {
     username: string;
+    id: number;
 }
 
 export const refreshAccessToken = async () => {

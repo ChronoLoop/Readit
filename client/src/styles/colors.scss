@@ -1,5 +1,6 @@
 $black: --black;
 $post-border: --post-border;
+$post-border-hover: --post-border-hover;
 $body-text: --body-text;
 $primary-background: --primary-background;
 
@@ -24,6 +25,7 @@ $theme-map-light: (
     $body-text: #d7dadc,
     $black: #030303,
     $post-border: #343536,
+    $post-border-hover: #5a5b5d,
 
     $primary-background: #1a1a1b,
 
@@ -49,6 +51,7 @@ $theme-map-dark: (
     $body-text: #d7dadc,
     $black: #030303,
     $post-border: #343536,
+    $post-border-hover: #5a5b5d,
 
     $primary-background: #1a1a1b,
 

@@ -1,12 +1,12 @@
 import create from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { GetUserMeResponse } from '@/api';
+import { GetUserMeResponse } from '@/services';
 
 type User = GetUserMeResponse;
 
 interface UserStore {
     user: User | null;
-    setUser: (user: User) => void;
+    setUser: (user: User | null) => void;
 }
 
 const userStore = create<UserStore>()(
