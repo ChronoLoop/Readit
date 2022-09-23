@@ -27,3 +27,10 @@ export const getPosts = async () => {
     const response = await axiosPrivate.get<GetPostsResponse>('post');
     return response.data;
 };
+
+export const getSubredditPosts = async (subredditName: string) => {
+    const response = await axiosPrivate.get<GetPostsResponse>(
+        `post?subredditName=${subredditName}`
+    );
+    return response.data;
+};

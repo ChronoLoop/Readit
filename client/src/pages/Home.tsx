@@ -1,23 +1,26 @@
-import { PostsList } from '@/components';
-import { getPosts, getUserMe } from '@/services';
+import { PageContentWrapper, PostsList } from '@/components';
+import { getPosts, useUserQuery } from '@/services';
 import { useQuery } from 'react-query';
 
 const Home = () => {
-    const { isFetching } = useQuery('auth-user', getUserMe, {
-        retry: false,
-    });
+    const { isFetching } = useUserQuery();
 
     const { data: postsData, isFetching: isFetchingPosts } = useQuery(
-        ['posts', 'home-page'],
+        ['posts', 'home'],
         getPosts,
         {
             enabled: !isFetching,
         }
     );
 
-    if (isFetching || isFetchingPosts) return <div>Fetching posts...</div>;
+    if (isFetching || isFetchingPosts)
+        return <PageContentWrapper>Fetching posts...</PageContentWrapper>;
 
-    return <PostsList posts={postsData} />;
+    return (
+        <PageContentWrapper>
+            <PostsList posts={postsData} />
+        </PageContentWrapper>
+    );
 };
 
 export default Home;

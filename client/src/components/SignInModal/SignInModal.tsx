@@ -4,8 +4,8 @@ import cx from 'classnames';
 import { Button } from '../Button';
 import Portal from '../Portal';
 import styles from './SignInModal.module.scss';
-import SignInForm from './form/SignInForm';
-import SignUpForm from './form/SignUpForm';
+import SignInForm from './SignInForm';
+import SignUpForm from './SignUpForm';
 
 export type ModalModesValues = 'LOGIN' | 'SIGNUP';
 

@@ -1,3 +1,5 @@
+import useUserStore from '@/store/user';
+import { useQuery, useQueryClient } from 'react-query';
 import { axiosPublic, axiosPrivate } from './apiClient';
 
 let accessToken = '';
@@ -56,4 +58,20 @@ export const signOut = async () => {
 export const getUserMe = async () => {
     const response = await axiosPrivate.get<GetUserMeResponse>('user/me');
     return response.data;
+};
+
+export const useUserQuery = () => {
+    const setUser = useUserStore((s) => s.setUser);
+    const queryClient = useQueryClient();
+    return useQuery('auth-user', getUserMe, {
+        retry: false,
+        onSuccess: (data) => {
+            setUser(data);
+            queryClient.invalidateQueries('posts');
+        },
+        onError: () => {
+            setUser(null);
+            queryClient.invalidateQueries('posts');
+        },
+    });
 };

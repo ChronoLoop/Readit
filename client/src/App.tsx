@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { Layout } from './components';
-import { Home } from './pages';
+import { Home, Subreddit } from './pages';
 import ThemeProvider from './providers/ThemeProvider';
 
 function App() {
@@ -10,6 +10,10 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<Home />} />
+                        <Route
+                            path="r/:subredditName"
+                            element={<Subreddit />}
+                        />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>
