@@ -1,4 +1,6 @@
+import { useQuery } from 'react-query';
 import { axiosPrivate } from './apiClient';
+import { useUserQuery } from './auth';
 
 export interface PostData {
     id: number;
@@ -23,14 +25,31 @@ export interface PostData {
 
 export type GetPostsResponse = PostData[];
 
-export const getPosts = async () => {
+const getPosts = async () => {
     const response = await axiosPrivate.get<GetPostsResponse>('post');
     return response.data;
 };
 
-export const getSubredditPosts = async (subredditName: string) => {
+const getSubredditPosts = async (subredditName: string) => {
     const response = await axiosPrivate.get<GetPostsResponse>(
         `post?subredditName=${subredditName}`
     );
     return response.data;
+};
+
+export const useGetHomePosts = () => {
+    const { isFetching } = useUserQuery();
+    return useQuery(['posts', 'home'], getPosts, {
+        enabled: !isFetching,
+    });
+};
+
+export const useGetSubredditPosts = (subredditName: string) => {
+    const { isFetching } = useUserQuery();
+
+    return useQuery(
+        ['posts', 'subreddit', subredditName],
+        () => getSubredditPosts(subredditName),
+        { enabled: !!subredditName && !isFetching }
+    );
 };

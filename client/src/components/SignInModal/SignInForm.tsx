@@ -1,6 +1,5 @@
 import { Button, Input } from '@/components';
-import { useMutation, useQueryClient } from 'react-query';
-import { signIn } from '@/services';
+import { useSignIn } from '@/services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +11,7 @@ const SignInSchema = z.object({
     password: z.string().min(1, { message: 'Password is required' }),
 });
 
-type SignInFormType = z.infer<typeof SignInSchema>;
+export type SignInFormType = z.infer<typeof SignInSchema>;
 
 const SignInForm = () => {
     const {
@@ -24,16 +23,7 @@ const SignInForm = () => {
         resolver: zodResolver(SignInSchema),
     });
 
-    const queryClient = useQueryClient();
-
-    const { mutate, isLoading, isError, error } = useMutation(
-        (data: SignInFormType) => signIn(data.username, data.password),
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries('auth-user');
-            },
-        }
-    );
+    const { mutate, isLoading, isError, error } = useSignIn();
 
     const onSubmit: SubmitHandler<SignInFormType> = (data) => {
         mutate(data);
