@@ -31,10 +31,10 @@ const Subreddit = () => {
         data: postsData,
         isFetching,
         error,
-        isFetched,
+        isFetchedAfterMount,
     } = useGetSubredditPosts(subredditName);
 
-    if (isFetching || !isFetched)
+    if (isFetching || !isFetchedAfterMount)
         return (
             <>
                 <SubredditTop />
