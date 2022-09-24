@@ -101,10 +101,10 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPosts(w http.ResponseWriter, r *http.Request) {
-	subredditIdParam := r.URL.Query().Get("subredditId")
+	subredditName := r.URL.Query().Get("subredditName")
 	issuer, issuerErr := GetAccessTokenIssuer(r)
 
-	if subredditIdParam == "" {
+	if subredditName == "" {
 		posts, err := models.GetPosts()
 		if err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
@@ -120,18 +120,12 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subredditId, subredditIdErr := strconv.Atoi(subredditIdParam)
-	if subredditIdErr != nil {
-		common.RespondError(w, http.StatusBadRequest, "Could not get posts")
-		return
-	}
-
-	if _, err := models.FindSubredditById(uint(subredditId)); err != nil {
+	if _, err := models.FindSubredditByName(subredditName); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	posts, err := models.GetPostsBySubredditId(uint(subredditId))
+	posts, err := models.GetPostsBySubredditName(subredditName)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return

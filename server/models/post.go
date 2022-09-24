@@ -53,6 +53,14 @@ func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
 	return posts, nil
 }
 
+func GetPostsBySubredditName(subredditName string) ([]Post, error) {
+	posts := []Post{}
+	if err := db.Connection.Where("name = ?", subredditName).Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
+		return posts, errors.New("could not get posts")
+	}
+	return posts, nil
+}
+
 func FindPostById(id uint) (Post, error) {
 	post := Post{}
 	if err := db.Connection.Where("id = ?", id).First(&post).Error; err != nil {

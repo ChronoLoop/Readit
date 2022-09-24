@@ -6,9 +6,10 @@ import PostVoteControls from '../PostVoteControls/PostVoteControls';
 
 interface PostProps {
     postData: PostData;
+    showSubredditLink?: boolean;
 }
 
-const Post = ({ postData }: PostProps) => {
+const Post = ({ postData, showSubredditLink = true }: PostProps) => {
     const navigate = useNavigate();
     return (
         <div
@@ -24,15 +25,17 @@ const Post = ({ postData }: PostProps) => {
             />
             <div className={styles.content}>
                 <div className={styles.general}>
-                    <Link
-                        className={styles.subreddit}
-                        to={`r/${postData.subreddit.name}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                        }}
-                    >
-                        {'r/' + postData.subreddit.name}
-                    </Link>
+                    {showSubredditLink && (
+                        <Link
+                            className={styles.subreddit}
+                            to={`r/${postData.subreddit.name}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                            }}
+                        >
+                            {'r/' + postData.subreddit.name}
+                        </Link>
+                    )}
                     <span className={styles.auther}>
                         Posted by{' '}
                         <Link

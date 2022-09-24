@@ -1,5 +1,7 @@
+@use '@/styles/variables';
+
 .container {
-    @media (min-width: 960px) {
+    @media (min-width: variables.$posts-with-sidebar-total-width) {
         width: 40rem;
     }
     width: 100%;

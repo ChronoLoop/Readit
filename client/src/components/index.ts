@@ -5,3 +5,5 @@ export * from './SignInModal';
 export * from './Input';
 export * from './PostsList';
 export * from './Post';
+export * from './PageContentWrapper';
+export * from './SidebarWrapper';
