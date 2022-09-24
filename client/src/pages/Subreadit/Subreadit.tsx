@@ -1,13 +1,13 @@
 import { PostsList, PageContentWrapper } from '@/components';
-import SubredditPlaceholderIcon from '@/icons/SubredditPlaceholderIcon';
-import { useGetSubredditPosts } from '@/services';
+import SubreaditPlaceholderIcon from '@/icons/SubreaditPlaceholderIcon';
+import { useGetSubreaditPosts } from '@/services';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import styles from './Subreddit.module.scss';
-import SubredditSidebar from './SubredditSidebar';
+import styles from './Subreadit.module.scss';
+import SubreaditSidebar from './SubreaditSidebar';
 
-const SubredditTop = () => {
-    const { subredditName } = useParams();
+const SubreaditTop = () => {
+    const { subreaditName } = useParams();
     return (
         <div className={styles.top_container}>
             <div className={styles.background_placeholder}></div>
@@ -15,8 +15,8 @@ const SubredditTop = () => {
             <div className={styles.header}>
                 <div className={styles.header_main}>
                     <div className={styles.header_main_content}>
-                        <SubredditPlaceholderIcon />
-                        <h1>{'r/' + subredditName}</h1>
+                        <SubreaditPlaceholderIcon />
+                        <h1>{'r/' + subreaditName}</h1>
                     </div>
                 </div>
             </div>
@@ -24,20 +24,20 @@ const SubredditTop = () => {
     );
 };
 
-const Subreddit = () => {
-    const { subredditName = '' } = useParams();
+const Subreadit = () => {
+    const { subreaditName = '' } = useParams();
 
     const {
         data: postsData,
         isFetching,
         error,
         isFetchedAfterMount,
-    } = useGetSubredditPosts(subredditName);
+    } = useGetSubreaditPosts(subreaditName);
 
     if (isFetching || !isFetchedAfterMount)
         return (
             <>
-                <SubredditTop />
+                <SubreaditTop />
                 <PageContentWrapper>Fetching posts...</PageContentWrapper>
             </>
         );
@@ -49,13 +49,13 @@ const Subreddit = () => {
 
     return (
         <>
-            <SubredditTop />
+            <SubreaditTop />
             <PageContentWrapper>
-                <PostsList posts={postsData} showSubredditLink={false} />
-                <SubredditSidebar />
+                <PostsList posts={postsData} showSubreaditLink={false} />
+                <SubreaditSidebar />
             </PageContentWrapper>
         </>
     );
 };
 
-export default Subreddit;
+export default Subreadit;

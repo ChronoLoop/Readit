@@ -12,7 +12,7 @@ export interface PostData {
         id: number;
         username: string;
     };
-    subreddit: {
+    subreadit: {
         id: number;
         name: string;
     };
@@ -30,9 +30,9 @@ const getPosts = async () => {
     return response.data;
 };
 
-const getSubredditPosts = async (subredditName: string) => {
+const getSubreaditPosts = async (subreaditName: string) => {
     const response = await axiosPrivate.get<GetPostsResponse>(
-        `post?subredditName=${subredditName}`
+        `post?subreaditName=${subreaditName}`
     );
     return response.data;
 };
@@ -44,12 +44,12 @@ export const useGetHomePosts = () => {
     });
 };
 
-export const useGetSubredditPosts = (subredditName: string) => {
+export const useGetSubreaditPosts = (subreaditName: string) => {
     const { isFetching } = useUserQuery();
 
     return useQuery(
-        ['posts', 'subreddit', subredditName],
-        () => getSubredditPosts(subredditName),
-        { enabled: !!subredditName && !isFetching }
+        ['posts', 'subreadit', subreaditName],
+        () => getSubreaditPosts(subreaditName),
+        { enabled: !!subreaditName && !isFetching }
     );
 };

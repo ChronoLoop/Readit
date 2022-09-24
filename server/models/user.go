@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 
-	"github.com/ikevinws/reddit-clone/db"
+	"github.com/ikevinws/readit/db"
 	"gorm.io/gorm"
 )
 

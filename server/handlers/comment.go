@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator"
-	"github.com/ikevinws/reddit-clone/common"
-	"github.com/ikevinws/reddit-clone/middleware"
-	"github.com/ikevinws/reddit-clone/models"
+	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/middleware"
+	"github.com/ikevinws/readit/models"
 )
 
 func CreateComment(w http.ResponseWriter, r *http.Request) {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ikevinws/reddit-clone/db"
+	"github.com/ikevinws/readit/db"
 )
 
 type Vote struct {

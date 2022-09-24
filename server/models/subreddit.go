@@ -3,47 +3,47 @@ package models
 import (
 	"errors"
 
-	"github.com/ikevinws/reddit-clone/db"
+	"github.com/ikevinws/readit/db"
 	"gorm.io/gorm"
 )
 
-type Subreddit struct {
+type Subreadit struct {
 	gorm.Model
 	Name string `json:"name" gorm:"unique;not null" validate:"required,min=3,max=20,alphanum"`
 }
 
-type SubRedditSerializer struct {
+type SubreaditSerializer struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
 }
 
-func FindSubredditByName(name string) (Subreddit, error) {
-	subreddit := Subreddit{}
-	if err := db.Connection.Where("name = ?", name).First(&subreddit).Error; err != nil {
-		return subreddit, errors.New("subreddit does not exist")
+func FindSubreaditByName(name string) (Subreadit, error) {
+	subreadit := Subreadit{}
+	if err := db.Connection.Where("name = ?", name).First(&subreadit).Error; err != nil {
+		return subreadit, errors.New("subreadit does not exist")
 	}
-	return subreddit, nil
+	return subreadit, nil
 }
 
-func FindSubredditById(id uint) (Subreddit, error) {
-	subreddit := Subreddit{}
-	if err := db.Connection.Where("id = ?", id).First(&subreddit).Error; err != nil {
-		return subreddit, errors.New("subreddit does not exist")
+func FindSubreaditById(id uint) (Subreadit, error) {
+	subreadit := Subreadit{}
+	if err := db.Connection.Where("id = ?", id).First(&subreadit).Error; err != nil {
+		return subreadit, errors.New("subreadit does not exist")
 	}
-	return subreddit, nil
+	return subreadit, nil
 }
 
-func CreateSubreddit(subreddit *Subreddit) error {
-	if err := db.Connection.Create(&subreddit).Error; err != nil {
-		return errors.New("subreddit could not be created")
+func CreateSubreadit(subreadit *Subreadit) error {
+	if err := db.Connection.Create(&subreadit).Error; err != nil {
+		return errors.New("subreadit could not be created")
 	}
 	return nil
 }
 
-func GetSubreddits() ([]Subreddit, error) {
-	subreddits := []Subreddit{}
-	if err := db.Connection.Find(&subreddits).Error; err != nil {
-		return subreddits, errors.New("subreddit could not be obtained")
+func GetSubreadits() ([]Subreadit, error) {
+	subreadits := []Subreadit{}
+	if err := db.Connection.Find(&subreadits).Error; err != nil {
+		return subreadits, errors.New("subreadit could not be obtained")
 	}
-	return subreddits, nil
+	return subreadits, nil
 }

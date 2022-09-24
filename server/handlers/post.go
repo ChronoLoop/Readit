@@ -7,21 +7,21 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator"
-	"github.com/ikevinws/reddit-clone/common"
-	"github.com/ikevinws/reddit-clone/middleware"
-	"github.com/ikevinws/reddit-clone/models"
+	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/middleware"
+	"github.com/ikevinws/readit/models"
 )
 
 func createResponsePost(post *models.Post) models.PostSerializer {
 	userSerialized := CreateResponseUser(&post.User)
-	subredditSerialized := CreateResponseSubreddit(&post.Subreddit)
+	subreaditSerialized := CreateResponseSubreadit(&post.Subreadit)
 	postSerialized := models.PostSerializer{
 		ID:        post.ID,
 		Title:     post.Title,
 		Text:      post.Text,
 		CreatedAt: post.CreatedAt,
 		User:      userSerialized,
-		Subreddit: subredditSerialized,
+		Subreadit: subreaditSerialized,
 	}
 	numberOfComments, err := models.GetPostCommentCount(post.ID)
 	if err == nil {
@@ -101,10 +101,10 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetPosts(w http.ResponseWriter, r *http.Request) {
-	subredditName := r.URL.Query().Get("subredditName")
+	subreaditName := r.URL.Query().Get("subreaditName")
 	issuer, issuerErr := GetAccessTokenIssuer(r)
 
-	if subredditName == "" {
+	if subreaditName == "" {
 		posts, err := models.GetPosts()
 		if err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
@@ -120,12 +120,12 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := models.FindSubredditByName(subredditName); err != nil {
+	if _, err := models.FindSubreaditByName(subreaditName); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	posts, err := models.GetPostsBySubredditName(subredditName)
+	posts, err := models.GetPostsBySubreaditName(subreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return

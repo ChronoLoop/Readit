@@ -5,29 +5,29 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
-	"github.com/ikevinws/reddit-clone/common"
-	"github.com/ikevinws/reddit-clone/models"
+	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/models"
 )
 
-func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
-	var subreddit models.Subreddit
-	if err := json.NewDecoder(r.Body).Decode(&subreddit); err != nil {
+func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
+	var subreadit models.Subreadit
+	if err := json.NewDecoder(r.Body).Decode(&subreadit); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if _, err := models.FindSubredditByName(subreddit.Name); err == nil {
-		common.RespondError(w, http.StatusBadRequest, "Subreddit already exists")
+	if _, err := models.FindSubreaditByName(subreadit.Name); err == nil {
+		common.RespondError(w, http.StatusBadRequest, "Subreadit already exists")
 		return
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(&subreddit); err != nil {
+	if err := validate.Struct(&subreadit); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
 
-	if err := models.CreateSubreddit(&subreddit); err != nil {
+	if err := models.CreateSubreadit(&subreadit); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -35,25 +35,25 @@ func CreateSubreddit(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func GetSubreddits(w http.ResponseWriter, r *http.Request) {
-	subreddits, err := models.GetSubreddits()
+func GetSubreadits(w http.ResponseWriter, r *http.Request) {
+	subreadits, err := models.GetSubreadits()
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	subredditsResponse := []models.SubRedditSerializer{}
-	for _, subreddit := range subreddits {
-		subredditResponse := CreateResponseSubreddit(&subreddit)
-		subredditsResponse = append(subredditsResponse, subredditResponse)
+	subreaditsResponse := []models.SubreaditSerializer{}
+	for _, subreadit := range subreadits {
+		subreaditResponse := CreateResponseSubreadit(&subreadit)
+		subreaditsResponse = append(subreaditsResponse, subreaditResponse)
 	}
 
-	common.RespondJSON(w, http.StatusOK, subredditsResponse)
+	common.RespondJSON(w, http.StatusOK, subreaditsResponse)
 }
 
-func CreateResponseSubreddit(subreddit *models.Subreddit) models.SubRedditSerializer {
-	return models.SubRedditSerializer{
-		ID:   subreddit.ID,
-		Name: subreddit.Name,
+func CreateResponseSubreadit(subreadit *models.Subreadit) models.SubreaditSerializer {
+	return models.SubreaditSerializer{
+		ID:   subreadit.ID,
+		Name: subreadit.Name,
 	}
 }

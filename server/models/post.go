@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ikevinws/reddit-clone/db"
+	"github.com/ikevinws/readit/db"
 	"gorm.io/gorm"
 )
 
@@ -13,8 +13,8 @@ type Post struct {
 	Title       string    `json:"title" validate:"required,min=1"`
 	User        User      `validate:"-"`
 	UserID      int       `json:"userId" validate:"required"`
-	Subreddit   Subreddit `validate:"-"`
-	SubredditID int       `json:"subredditId" validate:"required"`
+	Subreadit   Subreadit `validate:"-"`
+	SubreaditID int       `json:"subreaditId" validate:"required"`
 	Text        string    `json:"text" validate:"required,min=1"`
 }
 
@@ -25,7 +25,7 @@ type PostSerializer struct {
 	Text             string              `json:"text"`
 	CreatedAt        time.Time           `json:"createAt"`
 	User             UserSerializer      `json:"user"`
-	Subreddit        SubRedditSerializer `json:"subreddit"`
+	Subreadit        SubreaditSerializer `json:"subreadit"`
 	NumberOfComments int64               `json:"numberOfComments"`
 	UserVote         *PostVoteSerializer `json:"userVote,omitempty"`
 }
@@ -39,23 +39,23 @@ func CreatePost(post *Post) error {
 
 func GetPosts() ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
 		return posts, errors.New("posts could not be obtained")
 	}
 	return posts, nil
 }
 
-func GetPostsBySubredditId(subredditId uint) ([]Post, error) {
+func GetPostsBySubreaditId(subreaditId uint) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Where("subreddit_id = ?", subredditId).Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Where("subreadit_id = ?", subreaditId).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil
 }
 
-func GetPostsBySubredditName(subredditName string) ([]Post, error) {
+func GetPostsBySubreaditName(subreaditName string) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Where("name = ?", subredditName).Joins("Subreddit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Where("name = ?", subreaditName).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil

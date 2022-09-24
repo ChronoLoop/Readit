@@ -1,4 +1,4 @@
-module github.com/ikevinws/reddit-clone
+module github.com/ikevinws/readit
 
 go 1.18
 

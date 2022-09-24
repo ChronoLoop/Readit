@@ -1,4 +1,4 @@
-const SubredditPlaceholderIcon = () => {
+const SubreaditPlaceholderIcon = () => {
     return (
         <svg
             width="64"
@@ -38,4 +38,4 @@ const SubredditPlaceholderIcon = () => {
     );
 };
 
-export default SubredditPlaceholderIcon;
+export default SubreaditPlaceholderIcon;
