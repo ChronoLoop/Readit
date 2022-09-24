@@ -1,8 +1,7 @@
 import { PostsList, PageContentWrapper } from '@/components';
 import SubredditPlaceholderIcon from '@/icons/SubredditPlaceholderIcon';
-import { getSubredditPosts, useUserQuery } from '@/services';
+import { useGetSubredditPosts } from '@/services';
 import axios from 'axios';
-import { useQuery } from 'react-query';
 import { useParams } from 'react-router-dom';
 import styles from './Subreddit.module.scss';
 import SubredditSidebar from './SubredditSidebar';
@@ -27,19 +26,15 @@ const SubredditTop = () => {
 
 const Subreddit = () => {
     const { subredditName = '' } = useParams();
-    const { isFetching } = useUserQuery();
 
     const {
         data: postsData,
-        isFetching: isFetchingPosts,
+        isFetching,
         error,
-    } = useQuery(
-        ['posts', 'subreddit', subredditName],
-        () => getSubredditPosts(subredditName),
-        { enabled: !!subredditName && !isFetching }
-    );
+        isFetched,
+    } = useGetSubredditPosts(subredditName);
 
-    if (isFetching || isFetchingPosts)
+    if (isFetching || !isFetched)
         return (
             <>
                 <SubredditTop />

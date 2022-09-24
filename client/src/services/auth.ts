@@ -1,5 +1,7 @@
+import { SignInFormType } from '@/components/SignInModal/SignInForm';
+import { SignUpFormType } from '@/components/SignInModal/SignUpForm';
 import useUserStore from '@/store/user';
-import { useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { axiosPublic, axiosPrivate } from './apiClient';
 
 let accessToken = '';
@@ -33,7 +35,7 @@ export const refreshAccessToken = async () => {
     setAccessToken(response.data.accessToken);
 };
 
-export const signIn = async (username: string, password: string) => {
+const signIn = async (username: string, password: string) => {
     const response = await axiosPublic.post<SignInResponse>('user/signin', {
         username,
         password,
@@ -41,21 +43,21 @@ export const signIn = async (username: string, password: string) => {
     return response.data;
 };
 
-export const signUp = async (username: string, password: string) => {
-    const response = await axiosPublic.post('user/register', {
+const signUp = async (username: string, password: string) => {
+    const response = await axiosPublic.post<null>('user/register', {
         username,
         password,
     });
     return response.data;
 };
 
-export const signOut = async () => {
-    const response = await axiosPrivate.get('user/signout');
+const signOut = async () => {
+    const response = await axiosPrivate.get<null>('user/signout');
     setAccessToken('');
     return response.data;
 };
 
-export const getUserMe = async () => {
+const getUserMe = async () => {
     const response = await axiosPrivate.get<GetUserMeResponse>('user/me');
     return response.data;
 };
@@ -65,13 +67,44 @@ export const useUserQuery = () => {
     const queryClient = useQueryClient();
     return useQuery('auth-user', getUserMe, {
         retry: false,
+        onSettled: () => {
+            queryClient.invalidateQueries('posts');
+        },
         onSuccess: (data) => {
             setUser(data);
-            queryClient.invalidateQueries('posts');
         },
         onError: () => {
             setUser(null);
-            queryClient.invalidateQueries('posts');
         },
     });
+};
+
+export const useSignOut = () => {
+    const queryClient = useQueryClient();
+    return useMutation(signOut, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('auth-user');
+        },
+    });
+};
+
+export const useSignIn = () => {
+    const queryClient = useQueryClient();
+    return useMutation(
+        (data: SignInFormType) => signIn(data.username, data.password),
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries('auth-user');
+            },
+        }
+    );
+};
+
+export const useSignUp = (options: { onSuccess: () => void }) => {
+    return useMutation(
+        (data: SignUpFormType) => signUp(data.username, data.password),
+        {
+            ...options,
+        }
+    );
 };

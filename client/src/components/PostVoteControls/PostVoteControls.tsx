@@ -1,4 +1,4 @@
-import { sendPostVote } from '@/services';
+import { useSendPostVote } from '@/services';
 import useUserStore from '@/store/user';
 import { MouseEvent, useState } from 'react';
 import {
@@ -7,7 +7,6 @@ import {
     TiArrowUpThick,
     TiArrowDownThick,
 } from 'react-icons/ti';
-import { useMutation } from 'react-query';
 import { Button } from '../Button';
 import styles from './PostVoteControls.module.scss';
 
@@ -28,9 +27,7 @@ const PostVoteControls = ({
     const [currentTotalVoteValue, setCurrentTotalVoteValue] =
         useState(totalVoteValue);
 
-    const { mutate } = useMutation((value: number) => {
-        return sendPostVote(postId, value);
-    });
+    const { mutate } = useSendPostVote(postId);
 
     const handleVote = (e: MouseEvent<HTMLButtonElement>, value: number) => {
         e.stopPropagation();

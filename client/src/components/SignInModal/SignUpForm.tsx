@@ -1,7 +1,6 @@
 import { Button, Input } from '@/components';
 import styles from './SignInModalForm.module.scss';
-import { useMutation } from 'react-query';
-import { signUp } from '@/services';
+import { useSignUp } from '@/services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,7 +35,7 @@ const SignUpSchema = z
         path: ['confirmPassword'],
     });
 
-type SignUpFormType = z.infer<typeof SignUpSchema>;
+export type SignUpFormType = z.infer<typeof SignUpSchema>;
 
 const SignUpForm = ({ setCurrentMode }: SignUpFormProps) => {
     const {
@@ -48,14 +47,11 @@ const SignUpForm = ({ setCurrentMode }: SignUpFormProps) => {
         resolver: zodResolver(SignUpSchema),
     });
 
-    const { mutate, isError, error } = useMutation(
-        (data: SignUpFormType) => signUp(data.username, data.password),
-        {
-            onSuccess: () => {
-                setCurrentMode('LOGIN');
-            },
-        }
-    );
+    const { mutate, isError, error } = useSignUp({
+        onSuccess: () => {
+            setCurrentMode('LOGIN');
+        },
+    });
 
     const onSubmit: SubmitHandler<SignUpFormType> = (data) => {
         return mutate(data);

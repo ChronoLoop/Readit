@@ -3,17 +3,10 @@ import styles from './Nav.module.scss';
 import AuthControls from './AuthControls';
 import AuthMiddleware from '@/middleware/AuthMiddleware';
 import { Button } from '../Button';
-import { useMutation, useQueryClient } from 'react-query';
-import { signOut } from '@/services';
+import { useSignOut } from '@/services';
 
 const Navbar = () => {
-    const queryClient = useQueryClient();
-    const { isLoading, mutate } = useMutation(signOut, {
-        onSuccess: () => {
-            queryClient.invalidateQueries('auth-user');
-        },
-    });
-
+    const { isLoading, mutate } = useSignOut();
     const handleSignOut = () => {
         mutate();
     };
