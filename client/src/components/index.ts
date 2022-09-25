@@ -1,9 +1,10 @@
 export * from './Layout';
-export * from './Button';
-export * from './Portal';
 export * from './SignInModal';
-export * from './Input';
-export * from './PostsList';
-export * from './Post';
-export * from './PageContentWrapper';
-export * from './SidebarWrapper';
+export { default as Button } from './Button';
+export { default as Portal } from './Portal';
+export { default as Input } from './Input';
+export { default as PostsList } from './PostsList';
+export { default as Post } from './Post';
+export { default as PageContentWrapper } from './PageContentWrapper';
+export { default as SidebarWrapper } from './SidebarWrapper';
+export { default as PostVoteControls } from './PostVoteControls';

@@ -8,7 +8,7 @@ import {
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import cx from 'classnames';
 import styles from './Input.module.scss';
-import { Button } from '../Button';
+import { Button } from 'components';
 
 interface InputProps extends ComponentPropsWithoutRef<'input'> {
     isPassword?: boolean;

@@ -1,5 +1,5 @@
-import { PageContentWrapper, PostsList } from '@/components';
-import { useGetHomePosts } from '@/services';
+import { PageContentWrapper, PostsList } from 'components';
+import { useGetHomePosts } from 'services';
 
 const Home = () => {
     const {

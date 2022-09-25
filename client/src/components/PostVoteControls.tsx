@@ -1,5 +1,5 @@
-import { useSendPostVote } from '@/services';
-import useUserStore from '@/store/user';
+import { useSendPostVote } from 'services';
+import useUserStore from 'store/user';
 import { MouseEvent, useState } from 'react';
 import {
     TiArrowDownOutline,
@@ -7,7 +7,7 @@ import {
     TiArrowUpThick,
     TiArrowDownThick,
 } from 'react-icons/ti';
-import { Button } from '../Button';
+import { Button } from 'components';
 import styles from './PostVoteControls.module.scss';
 
 interface PostVoteControlsProps {

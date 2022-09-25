@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import styles from './Nav.module.scss';
 import AuthControls from './AuthControls';
-import AuthMiddleware from '@/middleware/AuthMiddleware';
-import { Button } from '../Button';
-import { useSignOut } from '@/services';
+import AuthMiddleware from 'middleware/AuthMiddleware';
+import { Button } from 'components';
+import { useSignOut } from 'services';
 
 const Navbar = () => {
     const { isLoading, mutate } = useSignOut();

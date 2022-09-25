@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { useUserQuery } from '@/services';
+import { useUserQuery } from 'services';
 
 interface AuthMiddlewareProps {
     children: ReactNode;

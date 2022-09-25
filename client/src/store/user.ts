@@ -1,6 +1,6 @@
 import create from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { GetUserMeResponse } from '@/services';
+import { GetUserMeResponse } from 'services';
 
 type User = GetUserMeResponse;
 

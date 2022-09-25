@@ -1,4 +1,4 @@
-import { SidebarWrapper } from '@/components';
+import { SidebarWrapper } from 'components';
 
 const SubreaditSidebar = () => {
     return <SidebarWrapper>SubreaditSidebar</SidebarWrapper>;

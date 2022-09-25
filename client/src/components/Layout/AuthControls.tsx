@@ -1,7 +1,6 @@
-import { Button } from '@/components';
+import { Button, SignInModal } from 'components';
 import { useState } from 'react';
 import styles from './AuthControls.module.scss';
-import { SignInModal } from '@/components';
 import { ModalModesValues } from '../SignInModal/SignInModal';
 
 const AuthControls = () => {

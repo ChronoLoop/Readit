@@ -1,4 +1,4 @@
-import { getServerErrorResponse } from '@/services';
+import { getServerErrorResponse } from 'services';
 import styles from './SignInModalForm.module.scss';
 
 interface SignInModalFormErrorProps {

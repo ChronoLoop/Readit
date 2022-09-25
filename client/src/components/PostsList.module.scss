@@ -1,4 +1,4 @@
-@use '@/styles/variables';
+@use 'styles/variables';
 
 .container {
     @media (min-width: variables.$posts-with-sidebar-total-width) {

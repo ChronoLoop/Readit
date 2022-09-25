@@ -1,5 +1,5 @@
-import { Button, Input } from '@/components';
-import { useSignIn } from '@/services';
+import { Button, Input } from 'components';
+import { useSignIn } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';

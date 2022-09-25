@@ -1,6 +1,6 @@
-import { Button, Input } from '@/components';
+import { Button, Input } from 'components';
 import styles from './SignInModalForm.module.scss';
-import { useSignUp } from '@/services';
+import { useSignUp } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';

@@ -1,8 +1,8 @@
-import { PostData } from '@/services';
+import { PostData } from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import PostVoteControls from '../PostVoteControls/PostVoteControls';
+import { PostVoteControls } from 'components';
 
 interface PostProps {
     postData: PostData;

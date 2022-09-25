@@ -1,5 +1,5 @@
-import { GetPostsResponse } from '@/services';
-import { Post } from '@/components';
+import { GetPostsResponse } from 'services';
+import { Post } from 'components';
 import styles from './PostsList.module.scss';
 
 interface PostsListProps {

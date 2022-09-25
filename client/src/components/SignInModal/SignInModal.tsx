@@ -1,7 +1,7 @@
 import { FaTimes } from 'react-icons/fa';
 import cx from 'classnames';
 
-import { Button } from '../Button';
+import { Button } from 'components';
 import Portal from '../Portal';
 import styles from './SignInModal.module.scss';
 import SignInForm from './SignInForm';

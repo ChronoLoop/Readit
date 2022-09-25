@@ -1,6 +1,6 @@
-import { PostsList, PageContentWrapper } from '@/components';
-import SubreaditPlaceholderIcon from '@/icons/SubreaditPlaceholderIcon';
-import { useGetSubreaditPosts } from '@/services';
+import { PostsList, PageContentWrapper } from 'components';
+import SubreaditPlaceholderIcon from 'icons/SubreaditPlaceholderIcon';
+import { useGetSubreaditPosts } from 'services';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import styles from './Subreadit.module.scss';

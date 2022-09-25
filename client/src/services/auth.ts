@@ -1,6 +1,6 @@
-import { SignInFormType } from '@/components/SignInModal/SignInForm';
-import { SignUpFormType } from '@/components/SignInModal/SignUpForm';
-import useUserStore from '@/store/user';
+import { SignInFormType } from 'components/SignInModal/SignInForm';
+import { SignUpFormType } from 'components/SignInModal/SignUpForm';
+import useUserStore from 'store/user';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { axiosPublic, axiosPrivate } from './apiClient';
 
