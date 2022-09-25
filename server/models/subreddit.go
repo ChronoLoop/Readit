@@ -7,6 +7,23 @@ import (
 	"gorm.io/gorm"
 )
 
+type SubreaditUserRole int64
+
+const (
+	UserRole SubreaditUserRole = iota
+	ModeratorRole
+)
+
+func (u SubreaditUserRole) String() string {
+	switch u {
+	case UserRole:
+		return "user"
+	case ModeratorRole:
+		return "moderator"
+	}
+	return "user"
+}
+
 type Subreadit struct {
 	gorm.Model
 	Name string `json:"name" gorm:"unique;not null" validate:"required,min=3,max=20,alphanum"`
@@ -15,6 +32,20 @@ type Subreadit struct {
 type SubreaditSerializer struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
+}
+
+type SubreaditUser struct {
+	Subreadit   Subreadit `validate:"-"`
+	SubreaditID uint      `json:"subreaditId" validate:"required" gorm:"primaryKey"`
+	User        User      `validate:"-"`
+	UserID      uint      `json:"userId" validate:"required" gorm:"primaryKey"`
+	Role        string    `json:"role"`
+}
+
+type SubreaditUserSerializer struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 func FindSubreaditByName(name string) (Subreadit, error) {
@@ -46,4 +77,35 @@ func GetSubreadits() ([]Subreadit, error) {
 		return subreadits, errors.New("subreadit could not be obtained")
 	}
 	return subreadits, nil
+}
+
+func JoinSubreadit(subreaditUser *SubreaditUser) error {
+	if err := db.Connection.Create(&subreaditUser).Error; err != nil {
+		return errors.New("user could not join subreadit")
+	}
+	return nil
+}
+
+func LeaveSubreadit(subreaditId uint, user_id uint) error {
+	subreaditUser := SubreaditUser{}
+	if err := db.Connection.Where("subreadit_id = ? AND user_id = ?", subreaditId, user_id).Delete(&subreaditUser).Error; err != nil {
+		return errors.New("user could not leave subreadit")
+	}
+	return nil
+}
+
+func FindSubreaditUser(subreaditId uint, user_id uint) (SubreaditUser, error) {
+	subreaditUser := SubreaditUser{}
+	if err := db.Connection.Where("subreadit_id = ? AND user_id = ?", subreaditId, user_id).First(&subreaditUser).Error; err != nil {
+		return subreaditUser, errors.New("user does not exist on subreadit")
+	}
+	return subreaditUser, nil
+}
+
+func GetSubreaditModerators(subreaditId uint) ([]SubreaditUser, error) {
+	subreaditUsers := []SubreaditUser{}
+	if err := db.Connection.Where("subreadit_id = ? AND role = ?", subreaditId, ModeratorRole.String()).Joins("User").Find(&subreaditUsers).Error; err != nil {
+		return subreaditUsers, errors.New("subreadit admins could not be obtained")
+	}
+	return subreaditUsers, nil
 }
