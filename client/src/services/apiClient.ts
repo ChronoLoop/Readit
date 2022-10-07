@@ -23,7 +23,7 @@ const setAuthorizationHeader = (req: AxiosRequestConfig<any>) => {
 };
 
 axiosPrivate.interceptors.request.use(
-    async (req) => {
+    (req) => {
         setAuthorizationHeader(req);
         return req;
     },

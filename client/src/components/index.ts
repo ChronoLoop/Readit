@@ -8,3 +8,4 @@ export { default as Post } from './Post';
 export { default as PageContentWrapper } from './PageContentWrapper';
 export { default as SidebarWrapper } from './SidebarWrapper';
 export { default as PostVoteControls } from './PostVoteControls';
+export { default as ModalFrame } from './ModalFrame';

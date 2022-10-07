@@ -1,10 +1,10 @@
 import { Button, Input } from 'components';
-import { useSignIn } from 'services';
+import { getServerErrorResponse, useSignIn } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import SignInModalFormError from './SignInModalError';
 import styles from './SignInModalForm.module.scss';
+import ModalFormWrapper from 'components/ModalFormWrapper';
 
 const SignInSchema = z.object({
     username: z.string().min(1, { message: 'Username is required' }),
@@ -30,7 +30,14 @@ const SignInForm = () => {
     };
 
     return (
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        <ModalFormWrapper
+            handleSubmit={handleSubmit(onSubmit)}
+            error={
+                isError &&
+                (getServerErrorResponse(error)?.error ||
+                    'An error occured when submitting. Please try again.')
+            }
+        >
             <Input
                 id={'username'}
                 {...register('username')}
@@ -53,9 +60,7 @@ const SignInForm = () => {
             >
                 Log In
             </Button>
-
-            {isError && <SignInModalFormError error={error} />}
-        </form>
+        </ModalFormWrapper>
     );
 };
 
