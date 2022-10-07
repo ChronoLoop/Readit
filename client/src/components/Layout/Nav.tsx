@@ -4,6 +4,7 @@ import AuthControls from './AuthControls';
 import AuthMiddleware from 'middleware/AuthMiddleware';
 import { Button } from 'components';
 import { useSignOut } from 'services';
+import SubreaditDropdown from './SubreaditDropdown';
 
 const Navbar = () => {
     const { isLoading, mutate } = useSignOut();
@@ -18,6 +19,7 @@ const Navbar = () => {
                     Readit
                 </Link>
                 <AuthMiddleware notAuthContent={<AuthControls />}>
+                    <SubreaditDropdown />
                     <Button
                         onClick={handleSignOut}
                         variant="primary"

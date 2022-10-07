@@ -1,8 +1,6 @@
-import { FaTimes } from 'react-icons/fa';
 import cx from 'classnames';
 
-import { Button } from 'components';
-import Portal from '../Portal';
+import { ModalFrame } from 'components';
 import styles from './SignInModal.module.scss';
 import SignInForm from './SignInForm';
 import SignUpForm from './SignUpForm';
@@ -25,50 +23,40 @@ const SignInModalTabs = ({
     setCurrentMode,
 }: SignInModalTabsProps) => {
     return (
-        <>
-            <div className={styles.header}>
-                {currentMode === 'LOGIN' ? (
-                    <h4>Log in to Readit</h4>
-                ) : (
-                    <h4>Join Readit today </h4>
-                )}
-            </div>
-
-            <ul className={styles.tablist}>
-                <li
-                    className={cx({
-                        [styles.tab_active]: currentMode === 'LOGIN',
-                    })}
+        <ul className={styles.tablist}>
+            <li
+                className={cx({
+                    [styles.tab_active]: currentMode === 'LOGIN',
+                })}
+            >
+                <button
+                    className={styles.tab_button}
+                    onClick={() => {
+                        setCurrentMode('LOGIN');
+                    }}
                 >
-                    <button
-                        className={styles.tab_button}
-                        onClick={() => {
-                            setCurrentMode('LOGIN');
-                        }}
-                    >
-                        <div className={styles.tab_text_wrapper}>
-                            <p>Log In</p>
-                        </div>
-                    </button>
-                </li>
-                <li
-                    className={cx({
-                        [styles.tab_active]: currentMode === 'SIGNUP',
-                    })}
+                    <div className={styles.tab_text_wrapper}>
+                        <p>Log In</p>
+                    </div>
+                </button>
+            </li>
+            <li
+                className={cx({
+                    [styles.tab_active]: currentMode === 'SIGNUP',
+                })}
+            >
+                <button
+                    className={styles.tab_button}
+                    onClick={() => {
+                        setCurrentMode('SIGNUP');
+                    }}
                 >
-                    <button
-                        className={styles.tab_button}
-                        onClick={() => {
-                            setCurrentMode('SIGNUP');
-                        }}
-                    >
-                        <div className={styles.tab_text_wrapper}>
-                            <p>Sign Up</p>
-                        </div>
-                    </button>
-                </li>
-            </ul>
-        </>
+                    <div className={styles.tab_text_wrapper}>
+                        <p>Sign Up</p>
+                    </div>
+                </button>
+            </li>
+        </ul>
     );
 };
 
@@ -78,27 +66,24 @@ const SignInModal = ({
     handleCloseModal,
 }: SignInModalProps) => {
     return (
-        <Portal>
-            <div className={styles.backdrop}>
-                <div className={styles.modal}>
-                    <Button
-                        className={styles.modal_close_button}
-                        onClick={handleCloseModal}
-                    >
-                        <FaTimes />
-                    </Button>
-                    <SignInModalTabs
-                        setCurrentMode={setCurrentMode}
-                        currentMode={currentMode}
-                    />
-                    {currentMode === 'LOGIN' ? (
-                        <SignInForm />
-                    ) : (
-                        <SignUpForm setCurrentMode={setCurrentMode} />
-                    )}
-                </div>
-            </div>
-        </Portal>
+        <ModalFrame
+            handleCloseModal={handleCloseModal}
+            header={
+                currentMode === 'LOGIN'
+                    ? 'Log in to Readit'
+                    : 'Join Readit today'
+            }
+        >
+            <SignInModalTabs
+                setCurrentMode={setCurrentMode}
+                currentMode={currentMode}
+            />
+            {currentMode === 'LOGIN' ? (
+                <SignInForm />
+            ) : (
+                <SignUpForm setCurrentMode={setCurrentMode} />
+            )}
+        </ModalFrame>
     );
 };
 

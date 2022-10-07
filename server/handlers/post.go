@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -163,10 +164,12 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	issuer, issuerErr := GetAccessTokenIssuer(r)
 	if issuerErr == nil {
 		postResponse := createResponsePostWithUser(&post, issuer)
+		fmt.Printf("\nissuerErr == nil: %+v\n", postResponse)
 		common.RespondJSON(w, http.StatusOK, postResponse)
 		return
 	}
 
 	postResponse := createResponsePost(&post)
+	fmt.Printf("\n%+v\n", postResponse)
 	common.RespondJSON(w, http.StatusOK, postResponse)
 }

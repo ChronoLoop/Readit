@@ -63,7 +63,7 @@ func GetPostsBySubreaditName(subreaditName string) ([]Post, error) {
 
 func FindPostById(id uint) (Post, error) {
 	post := Post{}
-	if err := db.Connection.Where("id = ?", id).First(&post).Error; err != nil {
+	if err := db.Connection.Joins("User").Joins("Subreadit").Where("posts.id = ?", id).First(&post).Error; err != nil {
 		return post, errors.New("post does not exist")
 	}
 	return post, nil

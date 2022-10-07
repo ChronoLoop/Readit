@@ -1,11 +1,11 @@
 import { Button, Input } from 'components';
 import styles from './SignInModalForm.module.scss';
-import { useSignUp } from 'services';
+import { getServerErrorResponse, useSignUp } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ModalModesValues } from './SignInModal';
-import SignInModalFormError from './SignInModalError';
+import ModalFormWrapper from 'components/ModalFormWrapper';
 
 interface SignUpFormProps {
     setCurrentMode: (val: ModalModesValues) => void;
@@ -58,7 +58,14 @@ const SignUpForm = ({ setCurrentMode }: SignUpFormProps) => {
     };
 
     return (
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        <ModalFormWrapper
+            handleSubmit={handleSubmit(onSubmit)}
+            error={
+                isError &&
+                (getServerErrorResponse(error)?.error ||
+                    'An error occured when submitting. Please try again.')
+            }
+        >
             <Input
                 id={'username'}
                 {...register('username')}
@@ -87,8 +94,7 @@ const SignUpForm = ({ setCurrentMode }: SignUpFormProps) => {
             >
                 Sign Up
             </Button>
-            {isError && <SignInModalFormError error={error} />}
-        </form>
+        </ModalFormWrapper>
     );
 };
 
