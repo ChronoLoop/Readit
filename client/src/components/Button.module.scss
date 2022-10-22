@@ -4,14 +4,14 @@
 .button {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     border: 1px solid transparent;
     border-radius: 0.2rem;
     background-color: transparent;
     color: theme-var($body-text);
     font-weight: 600;
     font-size: inherit;
-    height: 1.8rem;
+    min-height: 1.8rem;
     padding: 0.2rem 0.3rem;
     user-select: none;
 
@@ -30,6 +30,11 @@
 
     &_no_padding {
         padding: 0;
+    }
+
+    &_center {
+        align-items: center;
+        justify-content: center;
     }
 }
 
@@ -51,6 +56,40 @@
     }
     &:active {
         background-color: theme-var($secondary-background-active);
+    }
+}
+
+.none {
+    &:hover {
+        cursor: pointer;
+        background-color: transparent;
+        border: 0;
+    }
+    &:active {
+        background-color: transparent;
+        border: 0;
+    }
+    &:disabled {
+        cursor: not-allowed;
+        background-color: transparent;
+        color: theme-var($color-opac-w-8);
+    }
+}
+
+.border {
+    &:hover {
+        cursor: pointer;
+        background-color: transparent;
+        border: 1px solid theme-var($post-border);
+    }
+    &:active {
+        background-color: transparent;
+        border: 1px solid theme-var($post-border);
+    }
+    &:disabled {
+        cursor: not-allowed;
+        background-color: transparent;
+        color: theme-var($color-opac-w-8);
     }
 }
 

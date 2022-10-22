@@ -6,7 +6,7 @@ import { axiosPublic, axiosPrivate } from './apiClient';
 
 let accessToken = '';
 
-const setAccessToken = (s: string) => {
+export const setAccessToken = (s: string) => {
     accessToken = s;
 };
 
@@ -84,6 +84,7 @@ export const useSignOut = () => {
     return useMutation(signOut, {
         onSuccess: () => {
             queryClient.invalidateQueries('auth-user');
+            queryClient.resetQueries('user-subreadits');
         },
     });
 };

@@ -43,9 +43,10 @@ type SubreaditUser struct {
 }
 
 type SubreaditUserSerializer struct {
-	ID       uint   `json:"id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	ID            uint   `json:"id"`
+	Username      string `json:"username"`
+	Role          string `json:"role"`
+	SubreaditName string `json:"subreaditName"`
 }
 
 func FindSubreaditByName(name string) (Subreadit, error) {
@@ -77,6 +78,15 @@ func GetSubreadits() ([]Subreadit, error) {
 		return subreadits, errors.New("subreadit could not be obtained")
 	}
 	return subreadits, nil
+}
+
+func GetUserSubreadits(user_id uint) ([]SubreaditUser, error) {
+	subreaditUsers := []SubreaditUser{}
+
+	if err := db.Connection.Where("user_id = ?", user_id).Joins("User").Joins("Subreadit").Find(&subreaditUsers).Error; err != nil {
+		return subreaditUsers, errors.New("user subreadits could not be obtained")
+	}
+	return subreaditUsers, nil
 }
 
 func JoinSubreadit(subreaditUser *SubreaditUser) error {

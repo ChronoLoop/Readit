@@ -20,6 +20,8 @@ $color-opac-w-5: --color-opac-w-5;
 $color-opac-w-6: --color-opac-w-6;
 $color-opac-w-7: --color-opac-w-7;
 $color-opac-w-8: --color-opac-w-8;
+$color-opac-w-9: --color-opac-w-9;
+$color-opac-w-10: --color-opac-w-10;
 
 $theme-map-light: (
     $body-text: #d7dadc,
@@ -45,6 +47,8 @@ $theme-map-light: (
     $color-opac-w-6: hsla(0, 0%, 100%, 0.3),
     $color-opac-w-7: hsla(0, 0%, 100%, 0.35),
     $color-opac-w-8: hsla(0, 0%, 100%, 0.45),
+    $color-opac-w-9: hsla(0, 0%, 100%, 0.5),
+    $color-opac-w-10: hsla(0, 0%, 100%, 0.55),
 );
 
 $theme-map-dark: (
@@ -71,6 +75,8 @@ $theme-map-dark: (
     $color-opac-w-6: hsla(0, 0%, 100%, 0.3),
     $color-opac-w-7: hsla(0, 0%, 100%, 0.35),
     $color-opac-w-8: hsla(0, 0%, 100%, 0.45),
+    $color-opac-w-9: hsla(0, 0%, 100%, 0.5),
+    $color-opac-w-10: hsla(0, 0%, 100%, 0.55),
 );
 
 @function theme-var($key, $fallback: null, $map: $theme-map-light) {

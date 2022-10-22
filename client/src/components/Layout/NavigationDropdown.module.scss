@@ -1,0 +1,111 @@
+@use 'styles/colors' as *;
+
+.container {
+    width: 17rem;
+    height: 2.3rem;
+    position: relative;
+
+    // @media (min-width: 62rem) {
+    //     width: 17rem;
+    // }
+}
+
+.button {
+    width: 100%;
+    height: 100%;
+    font-weight: 500;
+    padding: 0 2rem;
+    position: relative;
+    text-align: left;
+
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    &_open {
+        border: 1px solid theme-var($post-border);
+    }
+}
+
+.icon {
+    $left: 0.2rem;
+    $icon-max-width: 1.4rem;
+
+    width: $icon-max-width;
+    height: $icon-max-width;
+    max-width: $icon-max-width;
+    max-height: $icon-max-width;
+
+    &_main {
+        left: $left;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    &_caret {
+        right: $left;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
+.title {
+    font-size: 0.875rem;
+}
+
+.menu {
+    position: absolute;
+    top: 100%;
+    margin-top: -1px;
+    border: 1px solid theme-var($post-border);
+    border-top: 0 solid theme-var($primary-background);
+    background-color: theme-var($primary-background);
+    max-height: 20rem;
+    width: 100%;
+    border-radius: 0 0 0.2rem 0.2rem;
+    overflow: auto;
+
+    &_heading {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        color: theme-var($color-opac-w-9);
+        pointer-events: none;
+    }
+
+    &_item {
+        padding: 0.5rem 0.5rem;
+        width: 100%;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        font-weight: 500;
+        font-size: 0.7rem;
+        border: 0;
+
+        &:hover {
+            cursor: pointer;
+            background-color: theme-var($color-opac-w-4);
+        }
+        &:active {
+            background-color: theme-var($color-opac-w-5);
+        }
+        &:disabled {
+            cursor: not-allowed;
+            background-color: theme-var($color-opac-w-3);
+            color: theme-var($color-opac-w-8);
+        }
+
+        &_text {
+            margin-left: 0.5rem;
+            display: block;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 14rem;
+        }
+    }
+}
