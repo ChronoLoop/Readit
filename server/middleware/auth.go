@@ -30,15 +30,7 @@ func IsAuthorized(next http.Handler) http.Handler {
 			return []byte(secretKey), nil
 		})
 
-		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		if !token.Valid {
+		if err != nil || !token.Valid {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

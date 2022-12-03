@@ -16,9 +16,10 @@ type SubreaditUserRequestBody struct {
 
 func createResponseSubreaditUser(subreaditUser *models.SubreaditUser) models.SubreaditUserSerializer {
 	subreaditUserResponse := models.SubreaditUserSerializer{
-		ID:       subreaditUser.UserID,
-		Role:     subreaditUser.Role,
-		Username: subreaditUser.User.Username,
+		ID:            subreaditUser.SubreaditID,
+		Role:          subreaditUser.Role,
+		Username:      subreaditUser.User.Username,
+		SubreaditName: subreaditUser.Subreadit.Name,
 	}
 
 	return subreaditUserResponse
@@ -203,4 +204,21 @@ func GetSubreaditModerators(w http.ResponseWriter, r *http.Request) {
 
 	subreaditAdminsResponse := createResponseSubreaditUsers(&subreaditAdmins)
 	common.RespondJSON(w, http.StatusOK, subreaditAdminsResponse)
+}
+
+func GetUserSubreadits(w http.ResponseWriter, r *http.Request) {
+	issuer, issuerErr := middleware.GetJwtClaimsIssuer(r)
+	if issuerErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userSubreadits, err := models.GetUserSubreadits(uint(issuer))
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userSubreaditsResponse := createResponseSubreaditUsers(&userSubreadits)
+	common.RespondJSON(w, http.StatusOK, userSubreaditsResponse)
 }

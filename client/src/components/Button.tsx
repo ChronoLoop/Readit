@@ -6,6 +6,8 @@ import { ImSpinner2 } from 'react-icons/im';
 const VARIANTS = {
     primary: styles.primary,
     secondary: styles.secondary,
+    border: styles.border,
+    none: styles.none,
 } as const;
 
 interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
@@ -14,6 +16,7 @@ interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
     disablePadding?: boolean;
     disableBackground?: boolean;
     showSpinner?: boolean;
+    center?: boolean;
 }
 
 const Button = ({
@@ -25,6 +28,7 @@ const Button = ({
     disablePadding,
     disableBackground,
     showSpinner,
+    center = true,
     ...props
 }: ButtonProps) => {
     return (
@@ -37,6 +41,7 @@ const Button = ({
                 styles.button,
                 { [styles.button_no_padding]: disablePadding },
                 { [styles.button_no_background]: disableBackground },
+                { [styles.button_center]: center },
                 !disabled && variant && VARIANTS[variant]
             )}
         >
