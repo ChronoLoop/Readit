@@ -10,10 +10,15 @@ import cx from 'classnames';
 import styles from './Input.module.scss';
 import { Button } from 'components';
 
+const variants = {
+    transparent: styles.transparent,
+} as const;
+
 interface InputProps extends ComponentPropsWithoutRef<'input'> {
     isPassword?: boolean;
     labelContent?: ReactNode;
     error?: ReactNode;
+    variant?: keyof typeof variants;
 }
 
 interface InputPasswordEyeProps {
@@ -43,7 +48,15 @@ const InputPasswordEye = ({
 };
 
 const Input = (
-    { isPassword, labelContent, className, type, error, ...props }: InputProps,
+    {
+        isPassword,
+        labelContent,
+        className,
+        type,
+        error,
+        variant,
+        ...props
+    }: InputProps,
     ref: ForwardedRef<HTMLInputElement>
 ) => {
     const [showPassword, setShowPassword] = useState(isPassword ? false : true);
@@ -64,9 +77,14 @@ const Input = (
                 <input
                     {...props}
                     type={showPassword ? 'text' : 'password'}
-                    className={cx(className, styles.input, {
-                        [styles.password]: isPassword,
-                    })}
+                    className={cx(
+                        className,
+                        styles.input,
+                        {
+                            [styles.password]: isPassword,
+                        },
+                        variant && variants[variant]
+                    )}
                     ref={ref}
                 />
                 <InputPasswordEye

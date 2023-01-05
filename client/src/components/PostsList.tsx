@@ -6,6 +6,7 @@ interface PostsListProps {
     posts?: GetPostsResponse;
     showSubreaditLink?: boolean;
 }
+
 const PostsList = ({ posts, showSubreaditLink = true }: PostsListProps) => {
     if (!posts || posts.length === 0) return <div>no posts</div>;
     const postsList = posts.map((postData) => {

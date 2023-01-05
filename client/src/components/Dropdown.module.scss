@@ -4,10 +4,29 @@
     width: 17rem;
     height: 2.3rem;
     position: relative;
+    background-color: theme-var($primary-background);
+    border-radius: 0.2rem;
+    z-index: 1;
 
     // @media (min-width: 62rem) {
     //     width: 17rem;
     // }
+}
+
+.icon {
+    &_main {
+        left: 0.2rem;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    &_caret {
+        right: 0.2rem;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
 }
 
 .button {
@@ -25,30 +44,6 @@
 
     &_open {
         border: 1px solid theme-var($post-border);
-    }
-}
-
-.icon {
-    $left: 0.2rem;
-    $icon-max-width: 1.4rem;
-
-    width: $icon-max-width;
-    height: $icon-max-width;
-    max-width: $icon-max-width;
-    max-height: $icon-max-width;
-
-    &_main {
-        left: $left;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    &_caret {
-        right: $left;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
     }
 }
 

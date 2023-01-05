@@ -114,7 +114,7 @@ func FindSubreaditUser(subreaditId uint, user_id uint) (SubreaditUser, error) {
 
 func GetSubreaditModerators(subreaditId uint) ([]SubreaditUser, error) {
 	subreaditUsers := []SubreaditUser{}
-	if err := db.Connection.Where("subreadit_id = ? AND role = ?", subreaditId, ModeratorRole.String()).Joins("User").Find(&subreaditUsers).Error; err != nil {
+	if err := db.Connection.Where("subreadit_id = ? AND role = ?", subreaditId, ModeratorRole.String()).Joins("User").Joins("Subreadit").Find(&subreaditUsers).Error; err != nil {
 		return subreaditUsers, errors.New("subreadit admins could not be obtained")
 	}
 	return subreaditUsers, nil

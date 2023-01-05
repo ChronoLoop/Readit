@@ -1,4 +1,10 @@
-import { useQuery } from 'react-query';
+import {
+    useMutation,
+    UseMutationOptions,
+    useQueries,
+    useQuery,
+    useQueryClient,
+} from 'react-query';
 import { axiosPrivate } from './apiClient';
 import { useUserQuery } from './auth';
 
@@ -23,6 +29,12 @@ export interface PostData {
     };
 }
 
+export interface CreateSubreaditPostData {
+    title: string;
+    text?: string;
+    subreaditName: string;
+}
+
 export type GetPostsResponse = PostData[];
 
 const getPosts = async () => {
@@ -34,6 +46,11 @@ const getSubreaditPosts = async (subreaditName: string) => {
     const response = await axiosPrivate.get<GetPostsResponse>(
         `post?subreaditName=${subreaditName}`
     );
+    return response.data;
+};
+
+const createSubreaditPost = async (data: CreateSubreaditPostData) => {
+    const response = await axiosPrivate.post('post/create', data);
     return response.data;
 };
 
@@ -51,5 +68,26 @@ export const useGetSubreaditPosts = (subreaditName: string) => {
         ['posts', 'subreadit', subreaditName],
         () => getSubreaditPosts(subreaditName),
         { enabled: !!subreaditName && !isFetching }
+    );
+};
+
+export const useCreateSubreaditPost = (
+    options?: Omit<
+        UseMutationOptions<null, unknown, CreateSubreaditPostData, unknown>,
+        'mutationFn'
+    >
+) => {
+    const queryClient = useQueryClient();
+    return useMutation(
+        (data: CreateSubreaditPostData) => {
+            return createSubreaditPost(data);
+        },
+        {
+            ...options,
+            onSuccess: (data, variables, context) => {
+                queryClient.invalidateQueries('posts');
+                options?.onSuccess?.(data, variables, context);
+            },
+        }
     );
 };
