@@ -13,6 +13,12 @@ import (
 	"github.com/ikevinws/readit/models"
 )
 
+type CreateSubreaditPostRequestBody struct {
+	Title         string `json:"title"`
+	Text          string `json:"text"`
+	SubreaditName string `json:"subreaditName"`
+}
+
 func createResponsePost(post *models.Post) models.PostSerializer {
 	userSerialized := CreateResponseUser(&post.User)
 	subreaditSerialized := CreateResponseSubreadit(&post.Subreadit)
@@ -72,8 +78,8 @@ func createResponsePostsWithUser(posts *[]models.Post, userId int) []models.Post
 }
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
-	var post models.Post
-	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+	var postRequestBody CreateSubreaditPostRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&postRequestBody); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -85,7 +91,18 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post.UserID = issuer
+	subreadit, err := models.FindSubreaditByName(postRequestBody.SubreaditName)
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, "Subreadit does not exist")
+		return
+	}
+
+	post := models.Post{
+		UserID:      issuer,
+		Title:       postRequestBody.Title,
+		SubreaditID: int(subreadit.ID),
+		Text:        postRequestBody.Text,
+	}
 
 	validate := validator.New()
 	if err := validate.Struct(&post); err != nil {

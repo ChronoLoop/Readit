@@ -45,8 +45,9 @@ export const useCreateSubreadit = (
         },
         {
             ...options,
-            onSuccess: () => {
+            onSuccess: (data, variables, context) => {
                 queryClient.invalidateQueries('user-subreadits');
+                options?.onSuccess?.(data, variables, context);
             },
         }
     );

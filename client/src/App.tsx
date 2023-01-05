@@ -1,6 +1,7 @@
+import ModalContainer from 'containers/ModalContainer';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { Layout } from './components';
-import { Home, Subreadit } from './pages';
+import { Home, Subreadit, SubmitPost } from './pages';
 import ThemeProvider from './providers/ThemeProvider';
 
 function App() {
@@ -14,9 +15,15 @@ function App() {
                             path="r/:subreaditName"
                             element={<Subreadit />}
                         />
+                        <Route
+                            path="r/:subreaditName/submit"
+                            element={<SubmitPost />}
+                        />
+                        <Route path="submit" element={<SubmitPost />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>
+                <ModalContainer />
             </ThemeProvider>
         </BrowserRouter>
     );

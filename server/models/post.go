@@ -15,7 +15,7 @@ type Post struct {
 	UserID      int       `json:"userId" validate:"required"`
 	Subreadit   Subreadit `validate:"-"`
 	SubreaditID int       `json:"subreaditId" validate:"required"`
-	Text        string    `json:"text" validate:"required,min=1"`
+	Text        string    `json:"text"`
 }
 
 type PostSerializer struct {
