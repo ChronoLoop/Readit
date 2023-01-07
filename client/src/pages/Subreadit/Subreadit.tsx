@@ -1,10 +1,67 @@
-import { PostsList, PageContentWrapper } from 'components';
+import { PostsList, PageContentWrapper, Button } from 'components';
 import SubreaditPlaceholderIcon from 'icons/SubreaditPlaceholderIcon';
-import { useGetSubreaditPosts } from 'services';
+import {
+    getServerErrorResponseStatus,
+    useGetSubreaditMe,
+    useGetSubreaditPosts,
+    useJoinSubreadit,
+    useLeaveSubreadit,
+} from 'services';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import styles from './Subreadit.module.scss';
 import SubreaditSidebar from './SubreaditSidebar';
+
+const SubreaditJoinButton = () => {
+    const { subreaditName = '' } = useParams();
+    const { mutate } = useJoinSubreadit();
+
+    return (
+        <Button
+            variant="primary"
+            className={styles.join_btn}
+            onClick={() => {
+                mutate(subreaditName);
+            }}
+        >
+            Join
+        </Button>
+    );
+};
+
+const SubreaditLeaveButton = () => {
+    const { subreaditName = '' } = useParams();
+    const { mutate } = useLeaveSubreadit();
+
+    return (
+        <Button
+            variant="border"
+            className={styles.join_btn}
+            onClick={() => {
+                mutate(subreaditName);
+            }}
+        >
+            <span className={styles.joined_txt}>Joined</span>
+            <span className={styles.leave_txt}>Leave</span>
+        </Button>
+    );
+};
+
+const SubreaditJoinLeaveButton = () => {
+    const { subreaditName = '' } = useParams();
+    const { data, isFetching, isFetched, error, isError } =
+        useGetSubreaditMe(subreaditName);
+    const hasJoined = !!data?.username;
+
+    if (
+        isFetching ||
+        !isFetched ||
+        (isError && getServerErrorResponseStatus(error) !== 404)
+    )
+        return null;
+    else if (hasJoined) return <SubreaditLeaveButton />;
+    return <SubreaditJoinButton />;
+};
 
 const SubreaditTop = () => {
     const { subreaditName } = useParams();
@@ -17,6 +74,7 @@ const SubreaditTop = () => {
                     <div className={styles.header_main_content}>
                         <SubreaditPlaceholderIcon />
                         <h1>{'r/' + subreaditName}</h1>
+                        <SubreaditJoinLeaveButton />
                     </div>
                 </div>
             </div>

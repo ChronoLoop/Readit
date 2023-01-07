@@ -99,7 +99,7 @@ const Dropdown = ({ current, children }: DropdownProps) => {
                     [styles.button_open]: isDropdownOpen,
                 })}
                 onClick={toggleDropdown}
-                variant="border"
+                variant="borderHover"
             >
                 <Icon className={styles.icon_main}>{current.icon}</Icon>
                 <span className={styles.title}>{current.name}</span>

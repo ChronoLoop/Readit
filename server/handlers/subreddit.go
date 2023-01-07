@@ -222,3 +222,27 @@ func GetUserSubreadits(w http.ResponseWriter, r *http.Request) {
 	userSubreaditsResponse := createResponseSubreaditUsers(&userSubreadits)
 	common.RespondJSON(w, http.StatusOK, userSubreaditsResponse)
 }
+
+func GetSubreaditMe(w http.ResponseWriter, r *http.Request) {
+	subreaditName := r.URL.Query().Get("subreaditName")
+	issuer, issuerErr := middleware.GetJwtClaimsIssuer(r)
+	if issuerErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	subreadit, err := models.FindSubreaditByName(subreaditName)
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	subreaditUser, err := models.FindSubreaditUser(subreadit.ID, uint(issuer))
+	if err != nil {
+		common.RespondError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	userSubreaditResponse := createResponseSubreaditUser(&subreaditUser)
+	common.RespondJSON(w, http.StatusOK, userSubreaditResponse)
+}

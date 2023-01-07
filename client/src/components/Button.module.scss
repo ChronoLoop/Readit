@@ -80,7 +80,7 @@
     }
 }
 
-.border {
+.border_hover {
     &:hover {
         cursor: pointer;
         background-color: transparent;
@@ -89,6 +89,24 @@
     &:active {
         background-color: transparent;
         border: 1px solid theme-var($post-border);
+    }
+    &:disabled {
+        cursor: not-allowed;
+        background-color: transparent;
+        color: theme-var($color-opac-w-8);
+    }
+}
+
+.border {
+    border: 1px solid theme-var($post-border);
+    &:hover {
+        cursor: pointer;
+        background-color: transparent;
+        border: 1px solid theme-var($post-border-hover);
+    }
+    &:active {
+        background-color: transparent;
+        border: 1px solid theme-var($post-border-active);
     }
     &:disabled {
         cursor: not-allowed;

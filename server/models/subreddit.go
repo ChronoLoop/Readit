@@ -106,7 +106,7 @@ func LeaveSubreadit(subreaditId uint, user_id uint) error {
 
 func FindSubreaditUser(subreaditId uint, user_id uint) (SubreaditUser, error) {
 	subreaditUser := SubreaditUser{}
-	if err := db.Connection.Where("subreadit_id = ? AND user_id = ?", subreaditId, user_id).First(&subreaditUser).Error; err != nil {
+	if err := db.Connection.Where("subreadit_id = ? AND user_id = ?", subreaditId, user_id).Joins("User").Joins("Subreadit").First(&subreaditUser).Error; err != nil {
 		return subreaditUser, errors.New("user does not exist on subreadit")
 	}
 	return subreaditUser, nil

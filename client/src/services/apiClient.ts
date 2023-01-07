@@ -52,6 +52,14 @@ export const getServerErrorResponse = (error: unknown) => {
     return null;
 };
 
+export const getServerErrorResponseStatus = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+        return error.response?.status;
+    }
+
+    return null;
+};
+
 interface ErrorResponse {
     error?: string;
 }
