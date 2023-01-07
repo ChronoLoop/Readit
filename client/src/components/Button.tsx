@@ -6,6 +6,7 @@ import { ImSpinner2 } from 'react-icons/im';
 const VARIANTS = {
     primary: styles.primary,
     secondary: styles.secondary,
+    borderHover: styles.border_hover,
     border: styles.border,
     none: styles.none,
 } as const;

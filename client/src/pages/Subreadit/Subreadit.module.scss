@@ -25,6 +25,7 @@
 
             h1 {
                 margin-left: 0.7rem;
+                margin-right: 1.3rem;
                 font-weight: 700;
                 font-size: 1.5rem;
             }
@@ -35,4 +36,19 @@
 .background_placeholder {
     background-color: rgb(45, 151, 229);
     height: 4.5rem;
+}
+
+.join_btn {
+    min-width: 6rem;
+
+    &:hover .joined_txt {
+        display: none;
+    }
+    &:hover .leave_txt {
+        display: block;
+    }
+
+    .leave_txt {
+        display: none;
+    }
 }

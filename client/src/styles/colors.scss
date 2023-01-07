@@ -1,6 +1,7 @@
 $black: --black;
 $post-border: --post-border;
 $post-border-hover: --post-border-hover;
+$post-border-active: --post-border-active;
 $body-text: --body-text;
 $primary-background: --primary-background;
 
@@ -28,6 +29,7 @@ $theme-map-light: (
     $black: #030303,
     $post-border: #343536,
     $post-border-hover: #5a5b5d,
+    $post-border-active: #797979,
 
     $primary-background: #1a1a1b,
 
@@ -56,6 +58,7 @@ $theme-map-dark: (
     $black: #030303,
     $post-border: #343536,
     $post-border-hover: #5a5b5d,
+    $post-border-active: #797979,
 
     $primary-background: #1a1a1b,
 
