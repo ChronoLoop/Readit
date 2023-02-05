@@ -1,0 +1,10 @@
+@use 'styles/colors' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    background-color: theme-var($primary-background);
+    padding: 1rem 1rem 4rem;
+    width: 100%;
+    border-radius: 0.3rem;
+}

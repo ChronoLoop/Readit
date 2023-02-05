@@ -1,7 +1,7 @@
 import { Button, SignInModal } from 'components';
 import { useState } from 'react';
 import styles from './AuthControls.module.scss';
-import { ModalModesValues } from '../SignInModal/SignInModal';
+import { ModalModesValues } from 'components/modals/SignInModal/SignInModal';
 
 const AuthControls = () => {
     const [currentModalMode, setCurrentModalMode] =

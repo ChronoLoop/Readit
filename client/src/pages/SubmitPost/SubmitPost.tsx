@@ -1,10 +1,14 @@
-import { Button, Input, PageContentWrapper } from 'components';
+import {
+    Button,
+    Input,
+    PageContentWrapper,
+    TextArea,
+    Dropdown,
+} from 'components';
 import z from 'zod';
-import TextArea from 'components/TextArea';
 import styles from './SubmitPost.module.scss';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Dropdown from 'components/Dropdown';
 import { TbCircleDashed } from 'react-icons/tb';
 import {
     getServerErrorResponse,

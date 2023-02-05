@@ -1,0 +1,5 @@
+@use 'styles/colors' as *;
+
+.error {
+    color: theme-var($primary-red-1);
+}

@@ -1,12 +1,10 @@
 @use 'styles/colors' as *;
+@use 'styles/variables';
 
 .header {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
+    position: sticky;
     border-bottom: 1px solid theme-var($post-border);
-    height: 3.5rem;
+    height: variables.$nav-height;
     width: 100%;
     z-index: 100;
     background-color: theme-var($primary-background);
