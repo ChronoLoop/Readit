@@ -1,7 +1,12 @@
-import { SignInFormType } from 'components/SignInModal/SignInForm';
-import { SignUpFormType } from 'components/SignInModal/SignUpForm';
+import { SignInFormType } from 'components/modals/SignInModal/SignInForm';
+import { SignUpFormType } from 'components/modals/SignInModal/SignUpForm';
 import useUserStore from 'store/user';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    UseQueryOptions,
+} from 'react-query';
 import { axiosPublic, axiosPrivate } from './apiClient';
 
 let accessToken = '';
@@ -62,10 +67,16 @@ const getUserMe = async () => {
     return response.data;
 };
 
-export const useUserQuery = () => {
+export const useUserQuery = (
+    options?: Omit<
+        UseQueryOptions<GetUserMeResponse>,
+        'queryKey' | 'queryFn' | 'enabled'
+    >
+) => {
     const setUser = useUserStore((s) => s.setUser);
     const queryClient = useQueryClient();
-    return useQuery('auth-user', getUserMe, {
+    return useQuery<GetUserMeResponse>('auth-user', getUserMe, {
+        ...options,
         retry: false,
         onSettled: () => {
             queryClient.invalidateQueries('posts');
@@ -84,6 +95,8 @@ export const useSignOut = () => {
     return useMutation(signOut, {
         onSuccess: () => {
             queryClient.invalidateQueries('auth-user');
+            queryClient.invalidateQueries('post-vote');
+            queryClient.invalidateQueries('post-comments');
             queryClient.resetQueries('user-subreadits');
         },
     });
@@ -96,6 +109,8 @@ export const useSignIn = () => {
         {
             onSuccess: () => {
                 queryClient.invalidateQueries('auth-user');
+                queryClient.invalidateQueries('post-vote');
+                queryClient.invalidateQueries('post-comments');
             },
         }
     );

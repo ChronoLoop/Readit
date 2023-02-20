@@ -1,4 +1,4 @@
-import ModalContainer from 'containers/ModalContainer';
+import GlobalModalsContainer from 'containers/GlobalModalsContainer';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { Layout } from './components';
 import { Home, Subreadit, SubmitPost } from './pages';
@@ -12,7 +12,7 @@ function App() {
                     <Route path="/" element={<Layout />}>
                         <Route index element={<Home />} />
                         <Route
-                            path="r/:subreaditName"
+                            path="r/:subreaditName/*"
                             element={<Subreadit />}
                         />
                         <Route
@@ -23,7 +23,7 @@ function App() {
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>
-                <ModalContainer />
+                <GlobalModalsContainer />
             </ThemeProvider>
         </BrowserRouter>
     );

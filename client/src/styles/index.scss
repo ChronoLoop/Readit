@@ -11,6 +11,7 @@ html {
 
 html {
     box-sizing: border-box;
+    color-scheme: dark;
 }
 
 *,
@@ -24,6 +25,7 @@ body {
     font-size: 16px;
     background-color: theme-var($black);
     color: theme-var($body-text);
+    overflow: hidden;
 }
 
 a {
@@ -43,5 +45,4 @@ button {
     line-height: normal;
     -webkit-font-smoothing: inherit;
     -moz-osx-font-smoothing: inherit;
-    -webkit-appearance: none;
 }

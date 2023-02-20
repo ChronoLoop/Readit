@@ -11,6 +11,12 @@ import (
 	"github.com/ikevinws/readit/models"
 )
 
+type VoteResponse struct {
+	TotalVoteValue int64                      `json:"totalVoteValue"`
+	ID             uint                       `json:"id"`
+	UserVote       *models.UserVoteSerializer `json:"userVote"`
+}
+
 func checkVoteValue(voteValue int) bool {
 	validValues := []int{-1, 0, 1}
 	for _, value := range validValues {
@@ -21,17 +27,36 @@ func checkVoteValue(voteValue int) bool {
 	return false
 }
 
-func createPostVoteResponse(postVote *models.PostVote) models.PostVoteSerializer {
-	return models.PostVoteSerializer{
-		Value:  postVote.Value,
-		UserID: postVote.UserID,
+func createPostVoteResponse(postVote *models.PostVote, totalVoteValue int64, postId uint) VoteResponse {
+	var userVote *models.UserVoteSerializer = nil
+	if postVote != nil {
+		userVote = &models.UserVoteSerializer{
+			Value:  postVote.Value,
+			UserID: postVote.UserID,
+		}
+	}
+
+	return VoteResponse{
+		TotalVoteValue: totalVoteValue,
+		ID:             postId,
+		UserVote:       userVote,
 	}
 }
 
-func createPostCommentVoteResponse(postCommentVote *models.PostCommentVote) models.PostCommentVoteSerializer {
-	return models.PostCommentVoteSerializer{
-		Value:  postCommentVote.Value,
-		UserID: postCommentVote.UserID,
+func createPostCommentVoteResponse(postCommentVote *models.PostCommentVote, totalVoteValue int64, commentId uint) VoteResponse {
+	var userVote *models.UserVoteSerializer = nil
+
+	if postCommentVote != nil {
+		userVote = &models.UserVoteSerializer{
+			Value:  postCommentVote.Value,
+			UserID: postCommentVote.UserID,
+		}
+	}
+
+	return VoteResponse{
+		TotalVoteValue: totalVoteValue,
+		ID:             commentId,
+		UserVote:       userVote,
 	}
 }
 
@@ -152,29 +177,46 @@ func GetVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	issuer, issuerErr := GetAccessTokenIssuer(r)
-	if issuerErr != nil {
-		common.RespondError(w, http.StatusBadRequest, "Could not get vote")
-		return
-	}
 
 	switch voteType {
 	case "post":
-		postVote, err := models.FindPostVoteById(uint(voteTypeId), uint(issuer))
-		postVoteResponse := createPostVoteResponse(&postVote)
+		totalVoteValue, err := models.GetPostTotalVoteValue(uint(voteTypeId))
 		if err != nil {
-			common.RespondError(w, http.StatusBadRequest, err.Error())
+			totalVoteValue = 0
+		}
+		if issuerErr == nil {
+			postVote, err := models.FindPostVoteById(uint(voteTypeId), uint(issuer))
+			if err != nil {
+				postVoteResponse := createPostVoteResponse(nil, totalVoteValue, uint(voteTypeId))
+				common.RespondJSON(w, http.StatusOK, postVoteResponse)
+				return
+			}
+			postVoteResponse := createPostVoteResponse(&postVote, totalVoteValue, uint(voteTypeId))
+			common.RespondJSON(w, http.StatusOK, postVoteResponse)
 			return
 		}
+
+		postVoteResponse := createPostVoteResponse(nil, totalVoteValue, uint(voteTypeId))
 		common.RespondJSON(w, http.StatusOK, postVoteResponse)
 		return
 
 	case "comment":
-		commentVote, err := models.FindPostCommentVoteById(uint(voteTypeId), uint(issuer))
-		commentVoteResponse := createPostCommentVoteResponse(&commentVote)
+		totalVoteValue, err := models.GetPostCommentTotalVoteValue(uint(voteTypeId))
 		if err != nil {
 			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		if issuerErr == nil {
+			commentVote, err := models.FindPostCommentVoteById(uint(voteTypeId), uint(issuer))
+			if err != nil {
+				common.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, uint(voteTypeId))
+			common.RespondJSON(w, http.StatusOK, commentVoteResponse)
+			return
+		}
+		commentVoteResponse := createPostCommentVoteResponse(nil, totalVoteValue, uint(voteTypeId))
 		common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 		return
 

@@ -3,15 +3,9 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { getServerErrorResponse, useCreateSubreadit } from 'services';
 import { z } from 'zod';
 import styles from './CreateSubreaditModal.module.scss';
-import Input from './Input';
-import Button from './Button';
-import ModalFrame from './ModalFrame';
-import ModalFormWrapper from './ModalFormWrapper';
+import { Input, Button, ModalFrame, ModalFormWrapper } from 'components';
 import { useNavigate } from 'react-router-dom';
-
-interface CreateSubreaditModalProps {
-    handleCloseModal: () => void;
-}
+import useModalStore from 'store/modal';
 
 const SubreaditSchema = z.object({
     name: z
@@ -24,9 +18,9 @@ const SubreaditSchema = z.object({
 
 type SubreaditFormType = z.infer<typeof SubreaditSchema>;
 
-const CreateSubreaditModal = ({
-    handleCloseModal,
-}: CreateSubreaditModalProps) => {
+const CreateSubreaditModal = () => {
+    const { showCreateSubreaditModal, toggleShowCreateSubreaditModal } =
+        useModalStore();
     const navigate = useNavigate();
     const {
         register,
@@ -39,7 +33,7 @@ const CreateSubreaditModal = ({
 
     const { mutate, isLoading, isError, error } = useCreateSubreadit({
         onSuccess: (_, submittedData) => {
-            handleCloseModal();
+            toggleShowCreateSubreaditModal();
             navigate(`/r/${submittedData.name}`);
         },
     });
@@ -48,10 +42,12 @@ const CreateSubreaditModal = ({
         mutate(data);
     };
 
+    if (!showCreateSubreaditModal) return null;
+
     return (
         <ModalFrame
             header={'Create a subreadit'}
-            handleCloseModal={handleCloseModal}
+            handleCloseModal={toggleShowCreateSubreaditModal}
         >
             <ModalFormWrapper
                 error={

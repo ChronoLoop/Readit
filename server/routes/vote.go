@@ -7,8 +7,8 @@ import (
 )
 
 func VoteRouter(r chi.Router) {
-	r.With(middleware.IsAuthorized).Route("/vote", func(r chi.Router) {
-		r.Post("/{voteType}", handlers.CreateVote)
+	r.Route("/vote", func(r chi.Router) {
+		r.With(middleware.IsAuthorized).Post("/{voteType}", handlers.CreateVote)
 		r.Get("/{voteType}", handlers.GetVote)
 	})
 }

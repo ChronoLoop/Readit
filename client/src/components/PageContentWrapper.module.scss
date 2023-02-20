@@ -1,9 +1,10 @@
 @use 'styles/variables';
 
 .container {
-    flex: 1;
     display: flex;
     padding: 1rem;
     justify-content: center;
     gap: variables.$posts-with-sidebar-gap;
+    flex-grow: 1;
+    flex-basis: 0;
 }

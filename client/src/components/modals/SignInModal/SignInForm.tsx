@@ -1,10 +1,9 @@
-import { Button, Input } from 'components';
+import { Button, Input, ModalFormWrapper } from 'components';
 import { getServerErrorResponse, useSignIn } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import styles from './SignInModalForm.module.scss';
-import ModalFormWrapper from 'components/ModalFormWrapper';
 
 const SignInSchema = z.object({
     username: z.string().min(1, { message: 'Username is required' }),

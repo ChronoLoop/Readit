@@ -10,19 +10,23 @@ import (
 
 type PostComment struct {
 	gorm.Model
-	Post   Post   `validate:"-"`
-	PostID int    `json:"postId" validate:"required"`
-	User   User   `validate:"-"`
-	UserID int    `json:"userId" validate:"required"`
-	Text   string `json:"text" validate:"required,min=1"`
+	Post     Post   `validate:"-"`
+	PostID   int    `json:"postId" validate:"required"`
+	User     User   `validate:"-"`
+	UserID   int    `json:"userId" validate:"required"`
+	Text     string `json:"text" validate:"required,min=1"`
+	ParentID *int   `json:"parentId"`
 }
 
 type PostCommentSerializer struct {
-	ID             uint           `json:"id"`
-	TotalVoteValue int64          `json:"totalVoteValue"`
-	Text           string         `json:"text"`
-	CreatedAt      time.Time      `json:"createAt"`
-	User           UserSerializer `json:"user"`
+	ID             uint                `json:"id"`
+	TotalVoteValue int64               `json:"totalVoteValue"`
+	Text           string              `json:"text"`
+	CreatedAt      time.Time           `json:"createAt"`
+	User           UserSerializer      `json:"user"`
+	ParentID       *int                `json:"parentId"`
+	UserVote       *UserVoteSerializer `json:"userVote,omitempty"`
+	PostId         int                 `json:"postId"`
 }
 
 func CreatePostComment(comment *PostComment) error {

@@ -1,0 +1,76 @@
+@use 'styles/colors' as *;
+@use 'styles/variables';
+
+@mixin subreadit-header {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-left: 0.7rem;
+    margin-right: 1.3rem;
+}
+
+.top_container {
+    width: 100%;
+}
+
+.header {
+    display: block;
+    background-color: theme-var($primary-background);
+    width: 100%;
+    padding: 0 1rem;
+    position: relative;
+
+    &_main {
+        display: flex;
+        max-width: variables.$posts-with-sidebar-total-width;
+        margin: 0 auto;
+
+        &_content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            margin-top: -0.7rem;
+            margin-bottom: 1rem;
+
+            h1 {
+                @include subreadit-header();
+            }
+        }
+    }
+}
+
+.background_placeholder {
+    background-color: rgb(45, 151, 229);
+    min-height: 4.5rem;
+    display: flex;
+    align-items: center;
+
+    &_link {
+        height: 8rem;
+        &:hover {
+            cursor: pointer;
+        }
+        display: flex;
+        align-items: center;
+        padding-left: 5rem;
+        flex-grow: 1;
+
+        h1 {
+            @include subreadit-header();
+        }
+    }
+}
+
+.join_btn {
+    min-width: 6rem;
+
+    &:hover .joined_txt {
+        display: none;
+    }
+    &:hover .leave_txt {
+        display: block;
+    }
+
+    .leave_txt {
+        display: none;
+    }
+}

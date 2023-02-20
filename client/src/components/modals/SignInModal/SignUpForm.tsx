@@ -1,11 +1,10 @@
-import { Button, Input } from 'components';
+import { Button, Input, ModalFormWrapper } from 'components';
 import styles from './SignInModalForm.module.scss';
 import { getServerErrorResponse, useSignUp } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ModalModesValues } from './SignInModal';
-import ModalFormWrapper from 'components/ModalFormWrapper';
 
 interface SignUpFormProps {
     setCurrentMode: (val: ModalModesValues) => void;

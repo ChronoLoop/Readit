@@ -1,9 +1,9 @@
 import {
     useMutation,
     UseMutationOptions,
-    useQueries,
     useQuery,
     useQueryClient,
+    UseQueryOptions,
 } from 'react-query';
 import { axiosPrivate } from './apiClient';
 import { useUserQuery } from './auth';
@@ -48,6 +48,10 @@ const getSubreaditPosts = async (subreaditName: string) => {
     );
     return response.data;
 };
+const getSubreaditPost = async (id: number) => {
+    const response = await axiosPrivate.get<PostData>(`post/${id}`);
+    return response.data;
+};
 
 const createSubreaditPost = async (data: CreateSubreaditPostData) => {
     const response = await axiosPrivate.post('post/create', data);
@@ -56,14 +60,29 @@ const createSubreaditPost = async (data: CreateSubreaditPostData) => {
 
 export const useGetHomePosts = () => {
     const { isFetching } = useUserQuery();
-    return useQuery(['posts', 'home'], getPosts, {
-        enabled: !isFetching,
-    });
+    return useQuery(['posts', 'home'], getPosts, { enabled: !isFetching });
+};
+
+export const useGetSubreaditPost = (
+    id: number,
+    options?: Omit<
+        UseQueryOptions<PostData>,
+        'queryKey' | 'queryFn' | 'enabled'
+    >
+) => {
+    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    return useQuery<PostData>(
+        ['post', 'subreadit', id],
+        () => getSubreaditPost(id),
+        {
+            ...options,
+            enabled: !isFetching,
+        }
+    );
 };
 
 export const useGetSubreaditPosts = (subreaditName: string) => {
     const { isFetching } = useUserQuery();
-
     return useQuery(
         ['posts', 'subreadit', subreaditName],
         () => getSubreaditPosts(subreaditName),

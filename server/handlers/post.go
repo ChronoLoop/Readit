@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -45,7 +44,7 @@ func createResponsePostWithUser(post *models.Post, userId int) models.PostSerial
 	postResponse := createResponsePost(post)
 	postVote, err := models.FindPostVoteById(postResponse.ID, uint(userId))
 	if err == nil {
-		postResponse.UserVote = &models.PostVoteSerializer{
+		postResponse.UserVote = &models.UserVoteSerializer{
 			UserID: postVote.UserID,
 			Value:  postVote.Value,
 		}
@@ -68,7 +67,7 @@ func createResponsePostsWithUser(posts *[]models.Post, userId int) []models.Post
 	for i, postResponse := range postsResponse {
 		postVote, err := models.FindPostVoteById(postResponse.ID, uint(userId))
 		if err == nil {
-			postsResponse[i].UserVote = &models.PostVoteSerializer{
+			postsResponse[i].UserVote = &models.UserVoteSerializer{
 				UserID: postVote.UserID,
 				Value:  postVote.Value,
 			}
@@ -181,12 +180,10 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	issuer, issuerErr := GetAccessTokenIssuer(r)
 	if issuerErr == nil {
 		postResponse := createResponsePostWithUser(&post, issuer)
-		fmt.Printf("\nissuerErr == nil: %+v\n", postResponse)
 		common.RespondJSON(w, http.StatusOK, postResponse)
 		return
 	}
 
 	postResponse := createResponsePost(&post)
-	fmt.Printf("\n%+v\n", postResponse)
 	common.RespondJSON(w, http.StatusOK, postResponse)
 }
