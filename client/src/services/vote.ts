@@ -4,9 +4,20 @@ import {
     useQuery,
     useQueryClient,
     UseQueryOptions,
-} from 'react-query';
+} from '@tanstack/react-query';
 import { axiosPrivate } from './apiClient';
 import { useUserQuery } from './auth';
+
+export const POST_VOTE_KEYS = {
+    all: ['post-vote'] as const,
+    postId: (postId: number) => [...POST_VOTE_KEYS.all, postId] as const,
+};
+
+export const POST_COMMENT_VOTE_KEYS = {
+    all: ['post-comment-vote'] as const,
+    commentId: (commentId: number) =>
+        [...POST_COMMENT_VOTE_KEYS.all, commentId] as const,
+};
 
 const sendPostVote = async (id: number, value: number) => {
     const response = await axiosPrivate.post<null>('vote/post', { value, id });
@@ -28,8 +39,10 @@ export const useSendPostVote = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.invalidateQueries(['post-vote', postId]);
                 options?.onSuccess?.(data, variables, context);
+            },
+            onSettled: () => {
+                queryClient.invalidateQueries(POST_VOTE_KEYS.postId(postId));
             },
         }
     );
@@ -58,14 +71,18 @@ export const useSendPostCommentVote = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.invalidateQueries(['post-comment-vote', commentId]);
                 options?.onSuccess?.(data, variables, context);
+            },
+            onSettled: () => {
+                queryClient.invalidateQueries(
+                    POST_COMMENT_VOTE_KEYS.commentId(commentId)
+                );
             },
         }
     );
 };
 
-interface VoteResponse {
+export interface VoteResponse {
     totalVoteValue: number;
     id: number;
     userVote?: {
@@ -81,13 +98,6 @@ const getPostVote = async (postId: number) => {
     return response.data;
 };
 
-const getPostCommentVote = async (commentId: number) => {
-    const response = await axiosPrivate.get<VoteResponse>(
-        `vote/comment?id=${commentId}`
-    );
-    return response.data;
-};
-
 export const useGetPostVote = (
     postId: number,
     options?: Omit<
@@ -97,13 +107,20 @@ export const useGetPostVote = (
 ) => {
     const { isFetching } = useUserQuery({ refetchOnMount: false });
     return useQuery<VoteResponse>(
-        ['post-vote', postId],
+        POST_VOTE_KEYS.postId(postId),
         () => getPostVote(postId),
         {
             ...options,
             enabled: !!postId && !isFetching,
         }
     );
+};
+
+const getPostCommentVote = async (commentId: number) => {
+    const response = await axiosPrivate.get<VoteResponse>(
+        `vote/comment?id=${commentId}`
+    );
+    return response.data;
 };
 
 export const useGetPostCommentVote = (
@@ -114,9 +131,11 @@ export const useGetPostCommentVote = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
+    const { isFetching } = useUserQuery({ refetchOnMount: false });
+
     return useQuery<VoteResponse>(
-        ['post-comment-vote', postCommentId],
+        POST_COMMENT_VOTE_KEYS.commentId(postCommentId),
         () => getPostCommentVote(postCommentId),
-        { ...options, enabled: !!postCommentId }
+        { ...options, enabled: !!postCommentId && !isFetching }
     );
 };

@@ -203,7 +203,7 @@ func GetVote(w http.ResponseWriter, r *http.Request) {
 	case "comment":
 		totalVoteValue, err := models.GetPostCommentTotalVoteValue(uint(voteTypeId))
 		if err != nil {
-			common.RespondError(w, http.StatusBadRequest, err.Error())
+			totalVoteValue = 0
 			return
 		}
 		if issuerErr == nil {

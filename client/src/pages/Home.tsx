@@ -3,14 +3,9 @@ import { PageContentWrapper, PostsList } from 'components';
 import { useGetHomePosts } from 'services';
 
 const Home = () => {
-    const {
-        data: postsData,
-        isFetching,
-        isFetchedAfterMount,
-        error,
-    } = useGetHomePosts();
+    const { data: postsData, isLoading, error } = useGetHomePosts();
 
-    if (isFetching || !isFetchedAfterMount)
+    if (isLoading)
         return <PageContentWrapper>Fetching posts...</PageContentWrapper>;
     else if (axios.isAxiosError(error)) {
         return <PageContentWrapper>Could not fetch posts</PageContentWrapper>;

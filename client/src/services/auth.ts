@@ -6,8 +6,12 @@ import {
     useQuery,
     useQueryClient,
     UseQueryOptions,
-} from 'react-query';
+} from '@tanstack/react-query';
 import { axiosPublic, axiosPrivate } from './apiClient';
+import { POST_COMMENT_VOTE_KEYS, POST_VOTE_KEYS } from './vote';
+import { POST_COMMENT_KEY } from './comment';
+import { POSTS_KEY } from './posts';
+import { SUBREADIT_KEYS } from './subreadit';
 
 let accessToken = '';
 
@@ -32,34 +36,24 @@ export interface GetUserMeResponse {
     id: number;
 }
 
+export let firstRefreshRequestSent = false;
+
 export const refreshAccessToken = async () => {
     //using axiosPrivate will cause infinite loop in interceptors
-    const response = await axiosPublic.get<RefreshAccessTokenResponse>(
-        'user/refresh'
-    );
-    setAccessToken(response.data.accessToken);
+    try {
+        firstRefreshRequestSent = true;
+        const response = await axiosPublic.get<RefreshAccessTokenResponse>(
+            'user/refresh'
+        );
+        setAccessToken(response.data.accessToken);
+    } catch (err) {
+        useUserStore.setState({ user: null });
+        throw err;
+    }
 };
 
-const signIn = async (username: string, password: string) => {
-    const response = await axiosPublic.post<SignInResponse>('user/signin', {
-        username,
-        password,
-    });
-    return response.data;
-};
-
-const signUp = async (username: string, password: string) => {
-    const response = await axiosPublic.post<null>('user/register', {
-        username,
-        password,
-    });
-    return response.data;
-};
-
-const signOut = async () => {
-    const response = await axiosPrivate.get<null>('user/signout');
-    setAccessToken('');
-    return response.data;
+const AUTH_USER_KEY = {
+    all: ['auth-user'] as const,
 };
 
 const getUserMe = async () => {
@@ -74,32 +68,47 @@ export const useUserQuery = (
     >
 ) => {
     const setUser = useUserStore((s) => s.setUser);
-    const queryClient = useQueryClient();
-    return useQuery<GetUserMeResponse>('auth-user', getUserMe, {
+    const isAuth = useUserStore((s) => !!s.user);
+    return useQuery<GetUserMeResponse>(AUTH_USER_KEY.all, getUserMe, {
         ...options,
         retry: false,
-        onSettled: () => {
-            queryClient.invalidateQueries('posts');
-        },
         onSuccess: (data) => {
             setUser(data);
         },
         onError: () => {
             setUser(null);
         },
+        enabled: !firstRefreshRequestSent || !!accessToken || isAuth,
     });
+};
+
+const signOut = async () => {
+    const response = await axiosPrivate.get<null>('user/signout');
+    setAccessToken('');
+    return response.data;
 };
 
 export const useSignOut = () => {
     const queryClient = useQueryClient();
     return useMutation(signOut, {
         onSuccess: () => {
-            queryClient.invalidateQueries('auth-user');
-            queryClient.invalidateQueries('post-vote');
-            queryClient.invalidateQueries('post-comments');
-            queryClient.resetQueries('user-subreadits');
+            queryClient.invalidateQueries(AUTH_USER_KEY.all);
+            queryClient.invalidateQueries(POSTS_KEY.all);
+            queryClient.invalidateQueries(POST_COMMENT_KEY.all);
+            queryClient.invalidateQueries(POST_VOTE_KEYS.all);
+            queryClient.invalidateQueries(POST_COMMENT_VOTE_KEYS.all);
+            queryClient.invalidateQueries(SUBREADIT_KEYS.all);
         },
     });
+};
+
+const signIn = async (username: string, password: string) => {
+    const response = await axiosPublic.post<SignInResponse>('user/signin', {
+        username,
+        password,
+    });
+    setAccessToken(response.data.accessToken);
+    return response.data;
 };
 
 export const useSignIn = () => {
@@ -108,12 +117,23 @@ export const useSignIn = () => {
         (data: SignInFormType) => signIn(data.username, data.password),
         {
             onSuccess: () => {
-                queryClient.invalidateQueries('auth-user');
-                queryClient.invalidateQueries('post-vote');
-                queryClient.invalidateQueries('post-comments');
+                queryClient.invalidateQueries(AUTH_USER_KEY.all);
+                queryClient.invalidateQueries(POSTS_KEY.all);
+                queryClient.invalidateQueries(POST_VOTE_KEYS.all);
+                queryClient.invalidateQueries(POST_COMMENT_VOTE_KEYS.all);
+                queryClient.invalidateQueries(POST_COMMENT_KEY.all);
+                queryClient.invalidateQueries(SUBREADIT_KEYS.all);
             },
         }
     );
+};
+
+const signUp = async (username: string, password: string) => {
+    const response = await axiosPublic.post<null>('user/register', {
+        username,
+        password,
+    });
+    return response.data;
 };
 
 export const useSignUp = (options: { onSuccess: () => void }) => {

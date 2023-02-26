@@ -163,6 +163,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 
 	if postIdParam == "" {
 		common.RespondJSON(w, http.StatusBadRequest, "Could not get post")
+		return
 	}
 
 	postId, postIdErr := strconv.Atoi(postIdParam)
@@ -186,4 +187,94 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 
 	postResponse := createResponsePost(&post)
 	common.RespondJSON(w, http.StatusOK, postResponse)
+}
+
+func CreateUserReadPost(w http.ResponseWriter, r *http.Request) {
+
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	postIdParam := chi.URLParam(r, "id")
+
+	if postIdParam == "" {
+		common.RespondJSON(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+
+	postId, postIdErr := strconv.Atoi(postIdParam)
+	if postIdErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+
+	post, err := models.FindPostById(uint(postId))
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	user, err := models.FindUserById(issuer)
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, "could not find user")
+		return
+	}
+
+	userReadPost := models.UserReadPost{
+		UserID: int(user.ID),
+		PostID: int(post.ID),
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(&userReadPost); err != nil {
+		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
+		return
+	}
+
+	if err := models.CreateUserReadPost(&userReadPost); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+}
+
+func createUserReadPostResponse(userReadPost *models.UserReadPost) models.UserReadPostSerializer {
+	return models.UserReadPostSerializer{
+		CreatedAt: userReadPost.CreatedAt,
+		PostID:    userReadPost.PostID,
+		UserID:    userReadPost.UserID,
+	}
+}
+
+func GetUserReadPost(w http.ResponseWriter, r *http.Request) {
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	postIdParam := chi.URLParam(r, "id")
+
+	if postIdParam == "" {
+		common.RespondJSON(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+	postId, postIdErr := strconv.Atoi(postIdParam)
+	if postIdErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+
+	userReadPost, err := models.GetUserReadPost(uint(issuer), uint(postId))
+
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userReadPostResponse := createUserReadPostResponse(&userReadPost)
+	common.RespondJSON(w, http.StatusOK, userReadPostResponse)
 }

@@ -30,6 +30,22 @@ type PostSerializer struct {
 	UserVote         *UserVoteSerializer `json:"userVote,omitempty"`
 }
 
+type UserReadPost struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	User      User           `validate:"-"`
+	UserID    int            `json:"userId" validate:"required" gorm:"primaryKey"`
+	Post      Post           `validate:"-"`
+	PostID    int            `json:"postId" validate:"required" gorm:"primaryKey"`
+}
+
+type UserReadPostSerializer struct {
+	CreatedAt time.Time `json:"createAt"`
+	UserID    int       `json:"userId"`
+	PostID    int       `json:"postId"`
+}
+
 func CreatePost(post *Post) error {
 	if err := db.Connection.Create(&post).Error; err != nil {
 		return errors.New("post could not be created")
@@ -67,4 +83,19 @@ func FindPostById(id uint) (Post, error) {
 		return post, errors.New("post does not exist")
 	}
 	return post, nil
+}
+
+func CreateUserReadPost(userReadPost *UserReadPost) error {
+	if err := db.Connection.Where("post_id = ? AND user_id = ?", userReadPost.PostID, userReadPost.UserID).FirstOrCreate(&userReadPost).Error; err != nil {
+		return errors.New("post read by user could not be created")
+	}
+	return nil
+}
+
+func GetUserReadPost(userId uint, postId uint) (UserReadPost, error) {
+	userReadPost := UserReadPost{}
+	if err := db.Connection.Where("post_id = ? AND user_id = ?", postId, userId).First(&userReadPost).Error; err != nil {
+		return userReadPost, errors.New("post was not read by user")
+	}
+	return userReadPost, nil
 }

@@ -3,7 +3,7 @@ import {
     UseMutationOptions,
     useQuery,
     useQueryClient,
-} from 'react-query';
+} from '@tanstack/react-query';
 import z from 'zod';
 import { axiosPrivate } from './apiClient';
 
@@ -36,14 +36,18 @@ export const useCreateSubreaditPostComment = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.invalidateQueries([
-                    'post-comments',
-                    variables.postId,
-                ]);
+                queryClient.invalidateQueries(
+                    POST_COMMENT_KEY.postId(variables.postId)
+                );
                 options?.onSuccess?.(data, variables, context);
             },
         }
     );
+};
+
+export const POST_COMMENT_KEY = {
+    all: ['post-comments'] as const,
+    postId: (postId: number) => [...POST_COMMENT_KEY.all, postId] as const,
 };
 
 interface PostComment {
@@ -73,7 +77,11 @@ export const getPostComments = async (postId: number) => {
 };
 
 export const useGetPostComments = (postId: number) => {
-    return useQuery(['post-comments', postId], () => getPostComments(postId), {
-        enabled: !!postId,
-    });
+    return useQuery(
+        POST_COMMENT_KEY.postId(postId),
+        () => getPostComments(postId),
+        {
+            enabled: !!postId,
+        }
+    );
 };

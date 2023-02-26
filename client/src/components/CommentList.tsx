@@ -5,7 +5,9 @@ import {
     PostComments,
     PostCommentSchema,
     useCreateSubreaditPostComment,
+    useGetPostCommentVote,
     useSendPostCommentVote,
+    VoteResponse,
 } from 'services';
 import styles from './CommentList.module.scss';
 import { BsArrowsAngleExpand } from 'react-icons/bs';
@@ -73,21 +75,30 @@ const CommentReplyInput = ({
 interface CommentVoteControlsProps {
     commentId: number;
     totalVoteValue: number;
-    userVoteValue?: number;
+    userVote?: VoteResponse['userVote'];
 }
 
 const CommentVoteControls = ({
     commentId,
     totalVoteValue,
-    userVoteValue,
+    userVote,
 }: CommentVoteControlsProps) => {
     const { mutate } = useSendPostCommentVote(commentId);
+
+    const { data } = useGetPostCommentVote(commentId, {
+        initialData: {
+            id: commentId,
+            totalVoteValue: totalVoteValue,
+            userVote: userVote,
+        },
+        staleTime: Infinity,
+    });
 
     return (
         <VoteControls
             horizontal
-            totalVoteValue={totalVoteValue}
-            userVoteValue={userVoteValue}
+            totalVoteValue={data?.totalVoteValue ?? totalVoteValue}
+            userVoteValue={data?.userVote?.value ?? 0}
             onChange={mutate}
         />
     );
@@ -140,7 +151,7 @@ const Comment = ({ comment, comments }: CommentProps) => {
                             <CommentVoteControls
                                 commentId={comment.id}
                                 totalVoteValue={comment.totalVoteValue}
-                                userVoteValue={comment.userVote?.value}
+                                userVote={comment.userVote}
                             />
 
                             <Button
