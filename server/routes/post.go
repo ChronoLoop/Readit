@@ -11,5 +11,7 @@ func PostRouter(r chi.Router) {
 		r.With(middleware.IsAuthorized).Post("/create", handlers.CreatePost)
 		r.Get("/", handlers.GetPosts)
 		r.Get("/{id}", handlers.GetPost)
+		r.With(middleware.IsAuthorized).Post("/read/{id}", handlers.CreateUserReadPost)
+		r.With(middleware.IsAuthorized).Get("/read/{id}", handlers.GetUserReadPost)
 	})
 }

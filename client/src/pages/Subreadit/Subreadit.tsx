@@ -11,12 +11,11 @@ const SubreaditIndex = () => {
 
     const {
         data: postsData,
-        isFetching,
+        isLoading,
         error,
-        isFetchedAfterMount,
     } = useGetSubreaditPosts(subreaditName);
 
-    if (isFetching || !isFetchedAfterMount)
+    if (isLoading)
         return (
             <>
                 <SubreaditTop />

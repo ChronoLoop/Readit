@@ -1,5 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { getAccessToken, refreshAccessToken } from './auth';
+import useUserStore from 'store/user';
+import {
+    firstRefreshRequestSent,
+    getAccessToken,
+    refreshAccessToken,
+} from './auth';
 
 const BASE_URL = '/api/';
 
@@ -36,7 +41,11 @@ axiosPrivate.interceptors.response.use(
     (res) => res,
     async (error) => {
         const prevRequest = error?.config;
-        if (error?.response?.status === 401 && !prevRequest._retry) {
+        if (
+            error?.response?.status === 401 &&
+            !prevRequest._retry &&
+            (!firstRefreshRequestSent || !!useUserStore.getState().user)
+        ) {
             prevRequest._retry = true;
             await refreshAccessToken();
             return axiosPrivate(prevRequest);

@@ -6,9 +6,10 @@ interface PostCommentsProps {
     postId: number;
 }
 const PostComments = ({ postId }: PostCommentsProps) => {
-    const { data, isLoading, isError, error } = useGetPostComments(postId);
+    const { data, isLoading, isFetching, isError, error } =
+        useGetPostComments(postId);
 
-    if (isLoading) return null;
+    if (isLoading || isFetching) return null;
     else if (isError)
         return (
             <ErrorText>

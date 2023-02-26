@@ -2,7 +2,9 @@ import cx from 'classnames';
 import {
     getServerErrorResponse,
     PostData,
+    useCheckUserReadPost,
     useCreateSubreaditPostComment,
+    useCreateUserReadPost,
 } from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt } from 'react-icons/fa';
@@ -68,6 +70,7 @@ interface PostWrapperProps {
     className?: string;
     clickable?: boolean;
     postData: PostData;
+    onClick?: () => void;
 }
 
 const PostWrapper = ({
@@ -75,6 +78,7 @@ const PostWrapper = ({
     className,
     clickable,
     postData,
+    onClick,
 }: PostWrapperProps) => {
     const [showModal, setShowModal] = useState(false);
     const [prevLocation] = useState(window.location.href);
@@ -91,6 +95,7 @@ const PostWrapper = ({
                 )}
                 onClick={() => {
                     if (!clickable) return;
+                    onClick?.();
 
                     window.history.replaceState(
                         null,
@@ -131,11 +136,19 @@ const Post = ({
     className,
     showCommentInput = false,
 }: PostProps) => {
+    const { data } = useCheckUserReadPost(postData.id, { enabled: clickable });
+    const { mutate } = useCreateUserReadPost();
+    const [clicked, setClicked] = useState(false);
+
     return (
         <PostWrapper
             postData={postData}
             className={className}
             clickable={clickable}
+            onClick={() => {
+                mutate(postData.id);
+                setClicked(true);
+            }}
         >
             <PostVoteControls
                 totalVoteValue={postData.totalVoteValue}
@@ -168,8 +181,17 @@ const Post = ({
                         </Link>
                     </span>
                 </div>
-                <div className={styles.title}>{postData.title}</div>
-                <p className={styles.text}>{postData.text}</p>
+                <div
+                    className={cx(styles.content_body, {
+                        [styles.content_body_muted]:
+                            (!!data && clickable) || clicked,
+                    })}
+                >
+                    <h3 className={styles.title}>{postData.title}</h3>
+                    {postData.text && (
+                        <p className={styles.text}>{postData.text}</p>
+                    )}
+                </div>
                 <div className={styles.comment}>
                     <FaRegCommentAlt size={'1rem'} />
                     {postData.numberOfComments} comments

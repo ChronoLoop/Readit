@@ -3,9 +3,15 @@ import {
     UseMutationOptions,
     useQuery,
     useQueryClient,
-} from 'react-query';
+} from '@tanstack/react-query';
 import useUserStore from 'store/user';
 import { axiosPrivate } from './apiClient';
+
+export const SUBREADIT_KEYS = {
+    all: ['user-subreadits'] as const,
+    subreaditMe: (subreaditName: string) =>
+        [...SUBREADIT_KEYS.all, 'subreadit-me', subreaditName] as const,
+};
 
 interface CreateSubreaditData {
     name: string;
@@ -25,36 +31,6 @@ const createSubreadit = async (data: CreateSubreaditData) => {
     return response.data;
 };
 
-const getUserSubreadits = async () => {
-    const response = await axiosPrivate.get<GetUserSubreaditsData>(
-        'subreadit/'
-    );
-    return response.data;
-};
-
-const getSubreaditMe = async (subreaditName: string) => {
-    const response = await axiosPrivate.get<UserSubreadit>(
-        `subreadit/me?subreaditName=${subreaditName}`
-    );
-    return response.data;
-};
-
-const joinSubreadit = async (subreaditName: string) => {
-    const response = await axiosPrivate.post<null>('subreadit/join', {
-        subreaditName,
-    });
-    return response.data;
-};
-
-const leaveSubreadit = async (subreaditName: string) => {
-    const response = await axiosPrivate.delete<null>('subreadit/leave', {
-        data: {
-            subreaditName,
-        },
-    });
-    return response.data;
-};
-
 export const useCreateSubreadit = (
     options: Omit<
         UseMutationOptions<null, unknown, CreateSubreaditData, unknown>,
@@ -69,11 +45,18 @@ export const useCreateSubreadit = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.invalidateQueries('user-subreadits');
+                queryClient.invalidateQueries(SUBREADIT_KEYS.all);
                 options?.onSuccess?.(data, variables, context);
             },
         }
     );
+};
+
+const joinSubreadit = async (subreaditName: string) => {
+    const response = await axiosPrivate.post<null>('subreadit/join', {
+        subreaditName,
+    });
+    return response.data;
 };
 
 export const useJoinSubreadit = (
@@ -90,11 +73,22 @@ export const useJoinSubreadit = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.invalidateQueries(['subreadit-me', variables]);
+                queryClient.invalidateQueries(
+                    SUBREADIT_KEYS.subreaditMe(variables)
+                );
                 options?.onSuccess?.(data, variables, context);
             },
         }
     );
+};
+
+const leaveSubreadit = async (subreaditName: string) => {
+    const response = await axiosPrivate.delete<null>('subreadit/leave', {
+        data: {
+            subreaditName,
+        },
+    });
+    return response.data;
 };
 
 export const useLeaveSubreadit = (
@@ -111,25 +105,39 @@ export const useLeaveSubreadit = (
         {
             ...options,
             onSuccess: (data, variables, context) => {
-                queryClient.resetQueries(['subreadit-me', variables]);
+                queryClient.resetQueries(SUBREADIT_KEYS.subreaditMe(variables));
                 options?.onSuccess?.(data, variables, context);
             },
         }
     );
 };
 
+const getUserSubreadits = async () => {
+    const response = await axiosPrivate.get<GetUserSubreaditsData>(
+        'subreadit/'
+    );
+    return response.data;
+};
+
 export const useGetUserSubreadits = () => {
-    const isAuth = useUserStore((s) => s.user);
-    return useQuery('user-subreadits', getUserSubreadits, {
+    const isAuth = useUserStore((s) => !!s.user);
+    return useQuery(SUBREADIT_KEYS.all, getUserSubreadits, {
         retry: false,
-        enabled: !!isAuth,
+        enabled: isAuth,
     });
+};
+
+const getSubreaditMe = async (subreaditName: string) => {
+    const response = await axiosPrivate.get<UserSubreadit>(
+        `subreadit/me?subreaditName=${subreaditName}`
+    );
+    return response.data;
 };
 
 export const useGetSubreaditMe = (subreaditName: string) => {
     const isAuth = useUserStore((s) => s.user);
     return useQuery(
-        ['subreadit-me', subreaditName],
+        SUBREADIT_KEYS.subreaditMe(subreaditName),
         () => getSubreaditMe(subreaditName),
         {
             retry: false,
