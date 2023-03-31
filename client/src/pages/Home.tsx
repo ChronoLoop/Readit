@@ -6,7 +6,11 @@ const Home = () => {
     const { data: postsData, isLoading, error } = useGetHomePosts();
 
     if (isLoading)
-        return <PageContentWrapper>Fetching posts...</PageContentWrapper>;
+        return (
+            <PageContentWrapper>
+                <PostsList.Loading />
+            </PageContentWrapper>
+        );
     else if (axios.isAxiosError(error)) {
         return <PageContentWrapper>Could not fetch posts</PageContentWrapper>;
     }

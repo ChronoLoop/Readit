@@ -19,7 +19,10 @@ const SubreaditIndex = () => {
         return (
             <>
                 <SubreaditTop />
-                <PageContentWrapper>Fetching posts...</PageContentWrapper>
+                <PageContentWrapper>
+                    <PostsList.Loading />
+                    <SubreaditSidebar />
+                </PageContentWrapper>
             </>
         );
     else if (axios.isAxiosError(error) && error.response?.status === 400) {

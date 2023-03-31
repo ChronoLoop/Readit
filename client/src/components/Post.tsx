@@ -2,9 +2,7 @@ import cx from 'classnames';
 import {
     getServerErrorResponse,
     PostData,
-    useCheckUserReadPost,
     useCreateSubreaditPostComment,
-    useCreateUserReadPost,
 } from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt } from 'react-icons/fa';
@@ -14,8 +12,6 @@ import { PostVoteControls } from 'components';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PostCommentSchema, CreatePostCommentData } from 'services';
-import SubreaditPostCommentsModal from './modals/SubreaditPostModal';
-import { ReactNode, useState } from 'react';
 import CommentTextArea from './CommentTextArea';
 
 interface PostCommentInputProps {
@@ -65,91 +61,23 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
     );
 };
 
-interface PostWrapperProps {
-    children: ReactNode;
-    className?: string;
-    clickable?: boolean;
-    postData: PostData;
-    onClick?: () => void;
-}
-
-const PostWrapper = ({
-    children,
-    className,
-    clickable,
-    postData,
-    onClick,
-}: PostWrapperProps) => {
-    const [showModal, setShowModal] = useState(false);
-    const [prevLocation] = useState(window.location.href);
-
-    return (
-        <>
-            <div
-                className={cx(
-                    styles.container,
-                    {
-                        [styles.container_no_hover]: !clickable,
-                    },
-                    className
-                )}
-                onClick={() => {
-                    if (!clickable) return;
-                    onClick?.();
-
-                    window.history.replaceState(
-                        null,
-                        '',
-                        `/r/${postData.subreadit.name}/comments/${postData.id}`
-                    );
-                    setShowModal(true);
-                }}
-            >
-                {children}
-            </div>
-            {showModal && (
-                <SubreaditPostCommentsModal
-                    prevLocation={prevLocation}
-                    postId={postData.id}
-                    closeModal={() => {
-                        setShowModal(false);
-                    }}
-                />
-            )}
-        </>
-    );
-};
-
 interface PostProps {
     postData: PostData;
     showSubreaditLink?: boolean;
-    clickable?: boolean;
     className?: string;
     showCommentInput?: boolean;
-    closeModal?: () => void;
+    bodyMuted?: boolean;
 }
 
 const Post = ({
     postData,
     showSubreaditLink = true,
-    clickable = true,
     className,
     showCommentInput = false,
+    bodyMuted = false,
 }: PostProps) => {
-    const { data } = useCheckUserReadPost(postData.id, { enabled: clickable });
-    const { mutate } = useCreateUserReadPost();
-    const [clicked, setClicked] = useState(false);
-
     return (
-        <PostWrapper
-            postData={postData}
-            className={className}
-            clickable={clickable}
-            onClick={() => {
-                mutate(postData.id);
-                setClicked(true);
-            }}
-        >
+        <div className={cx(styles.container, className)}>
             <PostVoteControls
                 totalVoteValue={postData.totalVoteValue}
                 postId={postData.id}
@@ -183,8 +111,7 @@ const Post = ({
                 </div>
                 <div
                     className={cx(styles.content_body, {
-                        [styles.content_body_muted]:
-                            (!!data && clickable) || clicked,
+                        [styles.content_body_muted]: bodyMuted,
                     })}
                 >
                     <h3 className={styles.title}>{postData.title}</h3>
@@ -198,7 +125,7 @@ const Post = ({
                 </div>
                 {showCommentInput && <PostCommentInput postId={postData.id} />}
             </div>
-        </PostWrapper>
+        </div>
     );
 };
 
