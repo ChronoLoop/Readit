@@ -14,14 +14,14 @@ const SubreaditPostCommentsModal = ({
     closeModal,
     prevLocation,
 }: SubreaditPostCommentsModalProps) => {
-    const { data, isFetching } = useGetSubreaditPost(postId);
+    const { data, isLoading } = useGetSubreaditPost(postId);
 
     const handleCloseModal = () => {
         window.history.replaceState(null, '', prevLocation);
         closeModal();
     };
 
-    const showData = !(!data || isFetching);
+    const showData = !(!data || isLoading);
 
     return (
         <ModalFrame
@@ -32,12 +32,7 @@ const SubreaditPostCommentsModal = ({
             <div className={styles.modal_content}>
                 {showData && (
                     <>
-                        <Post
-                            postData={data}
-                            clickable={false}
-                            showCommentInput
-                            closeModal={handleCloseModal}
-                        />
+                        <Post postData={data} showCommentInput />
                         <PostComments postId={data.id} />
                     </>
                 )}

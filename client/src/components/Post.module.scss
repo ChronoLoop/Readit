@@ -3,25 +3,8 @@
 .container {
     display: flex;
     width: 100%;
-    background-color: theme-var($primary-background);
-    padding: 0.5rem 0.5rem 0.5rem 0;
-    border-radius: 0.3rem;
-    border: 1px solid theme-var($post-border);
     font-size: 0.8rem;
     overflow-wrap: anywhere;
-
-    &:hover {
-        cursor: pointer;
-        border: 1px solid theme-var($post-border-hover);
-    }
-
-    &_no_hover {
-        border: none;
-        &:hover {
-            cursor: auto;
-            border: none;
-        }
-    }
 }
 
 .general {

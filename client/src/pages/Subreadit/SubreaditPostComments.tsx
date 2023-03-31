@@ -17,12 +17,7 @@ const SubreaditPostCommentsContent = () => {
     } else if (!data) return <div className={styles.container}>no post</div>;
     return (
         <div className={styles.container}>
-            <Post
-                showSubreaditLink={false}
-                postData={data}
-                clickable={false}
-                showCommentInput
-            />
+            <Post showSubreaditLink={false} postData={data} showCommentInput />
             <PostComments postId={data.id} />
         </div>
     );
