@@ -45,7 +45,7 @@ func generateAuthTokens(issuer int) (map[string]string, error) {
 	return map[string]string{"refreshToken": refreshToken, "accessToken": accessToken}, nil
 }
 
-func sendTokens(w http.ResponseWriter, issuer int) {
+func sendTokens(w http.ResponseWriter, issuer int, user *models.User) {
 	authTokens, err := generateAuthTokens(issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, "Could not login")
@@ -58,8 +58,15 @@ func sendTokens(w http.ResponseWriter, issuer int) {
 		HttpOnly: true,
 	})
 
-	common.RespondJSON(w, http.StatusOK, map[string]string{
-		"accessToken": authTokens["accessToken"],
+	common.RespondJSON(w, http.StatusOK, struct {
+		AccessToken string                `json:"accessToken"`
+		User        models.UserSerializer `json:"user"`
+	}{
+		AccessToken: authTokens["accessToken"],
+		User: models.UserSerializer{
+			ID:       user.ID,
+			Username: user.Username,
+		},
 	})
 
 }
@@ -112,7 +119,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendTokens(w, int(dbUser.ID))
+	sendTokens(w, int(dbUser.ID), &dbUser)
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {
@@ -154,8 +161,8 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	if _, err := models.FindUserById(issuer); err != nil {
+	user, err := models.FindUserById(issuer)
+	if err != nil {
 		http.SetCookie(w, &http.Cookie{
 			Name:    refreshTokenCookieName,
 			Value:   "",
@@ -165,7 +172,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendTokens(w, issuer)
+	sendTokens(w, issuer, &user)
 }
 
 func UserMe(w http.ResponseWriter, r *http.Request) {

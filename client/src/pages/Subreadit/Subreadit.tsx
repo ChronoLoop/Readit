@@ -41,7 +41,7 @@ const SubreaditIndex = () => {
     );
 };
 
-const Subreadit = () => {
+const SubreaditPage = () => {
     return (
         <Routes>
             <Route path="/" element={<SubreaditIndex />} />
@@ -53,4 +53,4 @@ const Subreadit = () => {
     );
 };
 
-export default Subreadit;
+export default SubreaditPage;

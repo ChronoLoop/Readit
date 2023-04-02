@@ -1,5 +1,6 @@
-import Subreadit from './Subreadit/Subreadit';
-import Home from './Home';
-import SubmitPost from './SubmitPost/SubmitPost';
+import SubreaditPage from './Subreadit/Subreadit';
+import HomePage from './Home';
+import SubmitPostPage from './SubmitPost/SubmitPost';
+import UserPage from './User/User';
 
-export { SubmitPost, Subreadit, Home };
+export { SubmitPostPage, SubreaditPage, HomePage, UserPage };

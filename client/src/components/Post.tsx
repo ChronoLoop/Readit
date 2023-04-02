@@ -67,6 +67,7 @@ interface PostProps {
     className?: string;
     showCommentInput?: boolean;
     bodyMuted?: boolean;
+    commentedOnUsername?: string;
 }
 
 const Post = ({
@@ -75,20 +76,49 @@ const Post = ({
     className,
     showCommentInput = false,
     bodyMuted = false,
+    commentedOnUsername,
 }: PostProps) => {
     return (
         <div className={cx(styles.container, className)}>
-            <PostVoteControls
-                totalVoteValue={postData.totalVoteValue}
-                postId={postData.id}
-                userVote={postData.userVote}
-            />
+            {commentedOnUsername ? (
+                <div className={cx(styles.comment, styles.comment_heading)}>
+                    <FaRegCommentAlt size={'1rem'} />
+                </div>
+            ) : (
+                <PostVoteControls
+                    totalVoteValue={postData.totalVoteValue}
+                    postId={postData.id}
+                    userVote={postData.userVote}
+                />
+            )}
             <div className={styles.content}>
                 <div className={styles.general}>
+                    {commentedOnUsername && (
+                        <>
+                            <Link
+                                className={styles.user}
+                                to={`/u/${commentedOnUsername}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                            >
+                                {commentedOnUsername}
+                            </Link>
+                            <span className={styles.muted}>commented on</span>
+                            <span
+                                className={cx(styles.general_title, {
+                                    [styles.muted]: bodyMuted,
+                                })}
+                            >
+                                {postData.title}
+                            </span>
+                            <span className={styles.muted}>•</span>
+                        </>
+                    )}
                     {showSubreaditLink && (
                         <Link
                             className={styles.subreadit}
-                            to={`r/${postData.subreadit.name}`}
+                            to={`/r/${postData.subreadit.name}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
@@ -96,11 +126,14 @@ const Post = ({
                             {'r/' + postData.subreadit.name}
                         </Link>
                     )}
-                    <span className={styles.auther}>
+                    {commentedOnUsername && (
+                        <span className={styles.muted}>•</span>
+                    )}
+                    <span className={styles.muted}>
                         Posted by{' '}
                         <Link
                             className={styles.user}
-                            to={`user/${postData.user.username}`}
+                            to={`/u/${postData.user.username}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
@@ -109,20 +142,24 @@ const Post = ({
                         </Link>
                     </span>
                 </div>
-                <div
-                    className={cx(styles.content_body, {
-                        [styles.content_body_muted]: bodyMuted,
-                    })}
-                >
-                    <h3 className={styles.title}>{postData.title}</h3>
-                    {postData.text && (
-                        <p className={styles.text}>{postData.text}</p>
-                    )}
-                </div>
-                <div className={styles.comment}>
-                    <FaRegCommentAlt size={'1rem'} />
-                    {postData.numberOfComments} comments
-                </div>
+                {!commentedOnUsername && (
+                    <>
+                        <div
+                            className={cx(styles.content_body, {
+                                [styles.content_body_muted]: bodyMuted,
+                            })}
+                        >
+                            <h3 className={styles.title}>{postData.title}</h3>
+                            {postData.text && (
+                                <p className={styles.text}>{postData.text}</p>
+                            )}
+                        </div>
+                        <div className={styles.comment}>
+                            <FaRegCommentAlt size={'1rem'} />
+                            {postData.numberOfComments} comments
+                        </div>
+                    </>
+                )}
                 {showCommentInput && <PostCommentInput postId={postData.id} />}
             </div>
         </div>

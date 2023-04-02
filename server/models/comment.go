@@ -23,10 +23,11 @@ type PostCommentSerializer struct {
 	TotalVoteValue int64               `json:"totalVoteValue"`
 	Text           string              `json:"text"`
 	CreatedAt      time.Time           `json:"createAt"`
+	UpdatedAt      time.Time           `json:"updatedAt"`
 	User           UserSerializer      `json:"user"`
 	ParentID       *int                `json:"parentId"`
 	UserVote       *UserVoteSerializer `json:"userVote,omitempty"`
-	PostId         int                 `json:"postId"`
+	PostID         int                 `json:"postId"`
 }
 
 func CreatePostComment(comment *PostComment) error {

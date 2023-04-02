@@ -26,6 +26,7 @@ func createResponsePost(post *models.Post) models.PostSerializer {
 		Title:     post.Title,
 		Text:      post.Text,
 		CreatedAt: post.CreatedAt,
+		UpdatedAt: post.UpdatedAt,
 		User:      userSerialized,
 		Subreadit: subreaditSerialized,
 	}

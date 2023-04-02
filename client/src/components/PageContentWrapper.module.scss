@@ -2,9 +2,10 @@
 
 .container {
     display: flex;
-    padding: 1rem;
+    padding: 1rem 1rem 5rem;
     justify-content: center;
     gap: variables.$posts-with-sidebar-gap;
     flex-grow: 1;
     flex-basis: 0;
+    overflow-y: auto;
 }

@@ -1,7 +1,11 @@
 package common
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func PrintStruct(s interface{}) {
-	fmt.Printf("\nstruct: %+v\n", s)
+	bytes, _ := json.MarshalIndent(s, "", "  ")
+	fmt.Printf("\nstruct: %s\n", string(bytes))
 }

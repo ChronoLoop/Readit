@@ -24,6 +24,7 @@ type PostSerializer struct {
 	TotalVoteValue   int64               `json:"totalVoteValue"`
 	Text             string              `json:"text"`
 	CreatedAt        time.Time           `json:"createAt"`
+	UpdatedAt        time.Time           `json:"updatedAt"`
 	User             UserSerializer      `json:"user"`
 	Subreadit        SubreaditSerializer `json:"subreadit"`
 	NumberOfComments int64               `json:"numberOfComments"`

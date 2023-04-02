@@ -83,7 +83,7 @@ const SelectPostSubreaditDropdown = ({
     );
 };
 
-const CreatePost = () => {
+const CreatePostPage = () => {
     const { subreaditName } = useParams();
     const navigate = useNavigate();
     const {
@@ -157,4 +157,4 @@ const CreatePost = () => {
     );
 };
 
-export default CreatePost;
+export default CreatePostPage;

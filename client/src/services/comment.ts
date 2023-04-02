@@ -4,8 +4,10 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query';
+import useUserStore from 'store/user';
 import z from 'zod';
 import { axiosPrivate } from './apiClient';
+import { PROFILE_KEY } from './profile';
 
 export const PostCommentSchema = z.object({
     postId: z.number(),
@@ -39,6 +41,12 @@ export const useCreateSubreaditPostComment = (
                 queryClient.invalidateQueries(
                     POST_COMMENT_KEY.postId(variables.postId)
                 );
+                const username = useUserStore.getState().user?.username;
+                if (username) {
+                    queryClient.invalidateQueries(
+                        PROFILE_KEY.overview(username)
+                    );
+                }
                 options?.onSuccess?.(data, variables, context);
             },
         }

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { PageContentWrapper, PostsList } from 'components';
 import { useGetHomePosts } from 'services';
 
-const Home = () => {
+const HomePage = () => {
     const { data: postsData, isLoading, error } = useGetHomePosts();
 
     if (isLoading)
@@ -22,4 +22,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default HomePage;

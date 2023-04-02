@@ -7,6 +7,7 @@ interface CardWrapperProps {
     onClick?: () => void;
     className?: string;
     disableHover?: boolean;
+    paddingAround?: boolean;
 }
 
 const CardWrapper = ({
@@ -14,10 +15,12 @@ const CardWrapper = ({
     onClick,
     className,
     disableHover,
+    paddingAround,
 }: CardWrapperProps) => {
     return (
         <div
             className={cx(styles.container, className, {
+                [styles.container_padding]: paddingAround,
                 [styles.container_no_hover]: disableHover,
             })}
             onClick={() => {
