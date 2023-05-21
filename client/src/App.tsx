@@ -1,7 +1,7 @@
 import GlobalModalsContainer from 'containers/GlobalModalsContainer';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { Layout } from './components';
-import { Home, Subreadit, SubmitPost } from './pages';
+import { HomePage, SubreaditPage, SubmitPostPage, UserPage } from './pages';
 import ThemeProvider from './providers/ThemeProvider';
 
 function App() {
@@ -10,16 +10,18 @@ function App() {
             <ThemeProvider>
                 <Routes>
                     <Route path="/" element={<Layout />}>
-                        <Route index element={<Home />} />
+                        <Route index element={<HomePage />} />
                         <Route
                             path="r/:subreaditName/*"
-                            element={<Subreadit />}
+                            element={<SubreaditPage />}
                         />
                         <Route
                             path="r/:subreaditName/submit"
-                            element={<SubmitPost />}
+                            element={<SubmitPostPage />}
                         />
-                        <Route path="submit" element={<SubmitPost />} />
+                        <Route path="u/:username/*" element={<UserPage />} />
+
+                        <Route path="submit" element={<SubmitPostPage />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>

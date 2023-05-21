@@ -24,7 +24,6 @@ func FindUserByName(username string) (User, error) {
 		return user, errors.New("user does not exist")
 	}
 	return user, nil
-
 }
 
 func FindUserById(id int) (User, error) {

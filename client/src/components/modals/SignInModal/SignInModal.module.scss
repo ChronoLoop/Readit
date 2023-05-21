@@ -25,16 +25,6 @@
     }
 
     &_active {
-        position: relative;
-        &::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            height: 0.1rem;
-            background-color: theme-var($purple-background);
-            margin-bottom: -0.1rem;
-        }
+        box-shadow: inset 0 -0.1rem 0 0 theme-var($purple-background);
     }
 }

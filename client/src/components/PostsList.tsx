@@ -3,10 +3,11 @@ import cx from 'classnames';
 import styles from './PostsList.module.scss';
 import PostCard from './PostCard';
 import CardWrapper from './CardWrapper';
+import { ReactNode } from 'react';
 
 const PostCardLoading = () => {
     return (
-        <CardWrapper className={styles.card} disableHover>
+        <CardWrapper className={styles.card} disableHover paddingAround>
             <div className={cx(styles.loading_line, styles.loading_line_2)} />
             <div className={cx(styles.loading_line, styles.loading_line_5)} />
             <div className={cx(styles.loading_text_block)} />
@@ -27,6 +28,14 @@ const PostListLoading = () => {
     );
 };
 
+interface PostsListContainerProps {
+    children: ReactNode;
+}
+
+const PostsListContainer = ({ children }: PostsListContainerProps) => {
+    return <div className={styles.container}>{children}</div>;
+};
+
 interface PostsListProps {
     posts?: GetPostsResponse;
     showSubreaditLink?: boolean;
@@ -45,9 +54,10 @@ const PostsList = ({ posts, showSubreaditLink = true }: PostsListProps) => {
         );
     });
 
-    return <div className={styles.container}>{postsList}</div>;
+    return <PostsListContainer>{postsList}</PostsListContainer>;
 };
 
 PostsList.Loading = PostListLoading;
+PostsList.Container = PostsListContainer;
 
 export default PostsList;

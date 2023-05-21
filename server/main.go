@@ -30,6 +30,7 @@ func main() {
 		routes.PostRouter(r)
 		routes.VoteRouter(r)
 		routes.CommentRouter(r)
+		routes.UserProfileRouter(r)
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)

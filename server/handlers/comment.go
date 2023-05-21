@@ -81,7 +81,7 @@ func createResponsePostComment(postComment *models.PostComment) models.PostComme
 		CreatedAt: postComment.CreatedAt,
 		User:      userSerialized,
 		ParentID:  postComment.ParentID,
-		PostId:    postComment.PostID,
+		PostID:    postComment.PostID,
 	}
 
 	totalVoteValue, err := models.GetPostCommentTotalVoteValue(postComment.ID)

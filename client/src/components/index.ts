@@ -15,3 +15,4 @@ export { default as PostVoteControls } from './PostVoteControls';
 export { default as PostsList } from './PostsList';
 export { default as SidebarWrapper } from './SidebarWrapper';
 export { default as TextArea } from './TextArea';
+export { default as AuthRoute } from './AuthRoute';

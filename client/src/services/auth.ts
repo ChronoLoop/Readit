@@ -12,6 +12,7 @@ import { POST_COMMENT_VOTE_KEYS, POST_VOTE_KEYS } from './vote';
 import { POST_COMMENT_KEY } from './comment';
 import { POSTS_KEY } from './posts';
 import { SUBREADIT_KEYS } from './subreadit';
+import { PROFILE_KEY } from './profile';
 
 let accessToken = '';
 
@@ -29,6 +30,7 @@ interface RefreshAccessTokenResponse {
 
 export interface SignInResponse {
     accessToken: string;
+    user: GetUserMeResponse;
 }
 
 export interface GetUserMeResponse {
@@ -69,6 +71,7 @@ export const useUserQuery = (
 ) => {
     const setUser = useUserStore((s) => s.setUser);
     const isAuth = useUserStore((s) => !!s.user);
+
     return useQuery<GetUserMeResponse>(AUTH_USER_KEY.all, getUserMe, {
         ...options,
         retry: false,
@@ -90,14 +93,17 @@ const signOut = async () => {
 
 export const useSignOut = () => {
     const queryClient = useQueryClient();
+    const setUser = useUserStore((s) => s.setUser);
     return useMutation(signOut, {
         onSuccess: () => {
+            setUser(null);
             queryClient.invalidateQueries(AUTH_USER_KEY.all);
             queryClient.invalidateQueries(POSTS_KEY.all);
             queryClient.invalidateQueries(POST_COMMENT_KEY.all);
             queryClient.invalidateQueries(POST_VOTE_KEYS.all);
             queryClient.invalidateQueries(POST_COMMENT_VOTE_KEYS.all);
             queryClient.invalidateQueries(SUBREADIT_KEYS.all);
+            queryClient.invalidateQueries(PROFILE_KEY.all);
         },
     });
 };
@@ -113,16 +119,19 @@ const signIn = async (username: string, password: string) => {
 
 export const useSignIn = () => {
     const queryClient = useQueryClient();
+    const setUser = useUserStore((s) => s.setUser);
     return useMutation(
         (data: SignInFormType) => signIn(data.username, data.password),
         {
-            onSuccess: () => {
+            onSuccess: (res) => {
+                setUser(res.user);
                 queryClient.invalidateQueries(AUTH_USER_KEY.all);
                 queryClient.invalidateQueries(POSTS_KEY.all);
                 queryClient.invalidateQueries(POST_VOTE_KEYS.all);
                 queryClient.invalidateQueries(POST_COMMENT_VOTE_KEYS.all);
                 queryClient.invalidateQueries(POST_COMMENT_KEY.all);
                 queryClient.invalidateQueries(SUBREADIT_KEYS.all);
+                queryClient.invalidateQueries(PROFILE_KEY.all);
             },
         }
     );

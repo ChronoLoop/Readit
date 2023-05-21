@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, ReactNode } from 'react';
+import Breakline from './Breakline';
 import Button from './Button';
 import styles from './CommentTextArea.module.scss';
 import ErrorText from './ErrorText';
@@ -60,7 +61,7 @@ const CommentTextArea = ({
                     </div>
                 </form>
             </div>
-            {showLine && <hr className={styles.line} />}
+            {showLine && <Breakline />}
         </>
     );
 };

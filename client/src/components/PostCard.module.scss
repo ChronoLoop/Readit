@@ -1,0 +1,34 @@
+@use 'styles/colors' as *;
+
+.post_card {
+    padding: 0.5rem 0.5rem 0.5rem 0;
+}
+
+.post_comment_card {
+    padding: 0.5rem;
+}
+
+.comments {
+    margin: 0 0.5rem;
+    font-size: 0.7rem;
+
+    &_item {
+        padding: 0.5rem 0;
+        border-top: 1px solid theme-var($post-border);
+
+        &_container {
+            border-left: 0.15rem dashed theme-var($post-border);
+            padding-left: 1rem;
+        }
+
+        &_content {
+            padding: 0.4rem;
+            background: theme-var($color-opac-w-2);
+            border-radius: 0.3rem;
+        }
+
+        &_user {
+            margin-bottom: 0.5rem;
+        }
+    }
+}
