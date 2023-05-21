@@ -45,14 +45,15 @@
     align-items: center;
 
     &_link {
-        height: 8rem;
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        height: 3rem;
+        padding-left: 1rem;
+
         &:hover {
             cursor: pointer;
         }
-        display: flex;
-        align-items: center;
-        padding-left: 5rem;
-        flex-grow: 1;
 
         h1 {
             @include subreadit-header();
