@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -25,6 +26,10 @@ func main() {
 	}
 	exPath := filepath.Dir(ex)
 
+	//air runs executable in tmp
+	if path.Base(exPath) == "tmp" {
+		exPath = filepath.Join(exPath, "../")
+	}
 	godotenv.Load(filepath.Join(exPath, "../.env"))
 
 	db.Initialize()
@@ -57,9 +62,26 @@ func main() {
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		rctx := chi.RouteContext(r.Context())
 		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(clientBuildDir))
+		fs := http.StripPrefix(pathPrefix, cacheControlHandler(http.FileServer(clientBuildDir)))
 		fs.ServeHTTP(w, r)
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
+}
+
+// cacheControlHandler is a custom handler that sets the Cache-Control header
+func cacheControlHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the requested file path
+		filePath := r.URL.Path
+
+		// Check if the requested file is under the "client/build/static" directory
+		if strings.HasPrefix(filePath, "/static/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000")
+		} else {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+
+		h.ServeHTTP(w, r)
+	}
 }
