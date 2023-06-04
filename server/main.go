@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -16,7 +18,14 @@ import (
 )
 
 func main() {
-	godotenv.Load("../.env")
+	ex, err := os.Executable()
+
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+
+	godotenv.Load(filepath.Join(exPath, "../.env"))
 
 	db.Initialize()
 	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreadit{}, &models.Post{}, &models.PostVote{}, &models.PostCommentVote{}, &models.PostComment{}, &models.SubreaditUser{})
@@ -42,6 +51,14 @@ func main() {
 		routes.VoteRouter(r)
 		routes.CommentRouter(r)
 		routes.UserProfileRouter(r)
+	})
+
+	clientBuildDir := http.Dir(filepath.Join(exPath, "../client/build"))
+	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(clientBuildDir))
+		fs.ServeHTTP(w, r)
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
