@@ -60,10 +60,7 @@ func main() {
 
 	clientBuildDir := http.Dir(filepath.Join(exPath, "../client/build"))
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, cacheControlHandler(http.FileServer(clientBuildDir)))
-		fs.ServeHTTP(w, r)
+		cacheControlHandler(http.FileServer(clientBuildDir)).ServeHTTP(w, r)
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
