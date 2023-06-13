@@ -58,27 +58,18 @@ func main() {
 		routes.UserProfileRouter(r)
 	})
 
-	clientBuildDir := http.Dir(filepath.Join(exPath, "../client/build"))
+	// Serve index.html for all other routes
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		cacheControlHandler(http.FileServer(clientBuildDir)).ServeHTTP(w, r)
+		filePath := r.URL.Path
+		if strings.HasPrefix(filePath, "/static/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000")
+			staticDir := http.Dir(filepath.Join(exPath, "../client/build"))
+			http.FileServer(staticDir).ServeHTTP(w, r)
+		} else {
+			w.Header().Set("Cache-Control", "no-cache")
+			http.ServeFile(w, r, filepath.Join(exPath, "../client/build/index.html"))
+		}
 	})
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), r)
-}
-
-// cacheControlHandler is a custom handler that sets the Cache-Control header
-func cacheControlHandler(h http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Get the requested file path
-		filePath := r.URL.Path
-
-		// Check if the requested file is under the "client/build/static" directory
-		if strings.HasPrefix(filePath, "/static/") {
-			w.Header().Set("Cache-Control", "public, max-age=31536000")
-		} else {
-			w.Header().Set("Cache-Control", "no-cache")
-		}
-
-		h.ServeHTTP(w, r)
-	}
 }
