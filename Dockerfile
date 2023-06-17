@@ -7,12 +7,12 @@ RUN npm run build
 
 
 
-FROM golang:1.19 AS serverBuilder
+FROM golang:1.19-alpine AS serverBuilder
 WORKDIR /app
 
 COPY ./server/. /app
 RUN go mod download
-RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o app
+RUN GOOS=linux go build -ldflags="-s -w" -o app
 
 
 
@@ -29,4 +29,3 @@ COPY --from=clientBuilder /app/build ./client/build/
 EXPOSE 5000
 
 CMD ["./server/app"]
-
