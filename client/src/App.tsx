@@ -1,8 +1,11 @@
 import GlobalModalsContainer from 'containers/GlobalModalsContainer';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { Slide, ToastContainer } from 'react-toastify';
 import { Layout } from './components';
 import { HomePage, SubreaditPage, SubmitPostPage, UserPage } from './pages';
 import ThemeProvider from './providers/ThemeProvider';
+
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
     return (
@@ -26,6 +29,13 @@ function App() {
                     </Route>
                 </Routes>
                 <GlobalModalsContainer />
+                <ToastContainer
+                    theme="colored"
+                    pauseOnHover={false}
+                    pauseOnFocusLoss={false}
+                    autoClose={false}
+                    transition={Slide}
+                />
             </ThemeProvider>
         </BrowserRouter>
     );

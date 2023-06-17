@@ -8,6 +8,7 @@ import useUserStore from 'store/user';
 import z from 'zod';
 import { axiosPrivate } from './apiClient';
 import { PROFILE_KEY } from './profile';
+import useRequestErrorToast from './useRequestErrorToast';
 
 export const PostCommentSchema = z.object({
     postId: z.number(),
@@ -31,13 +32,25 @@ export const useCreateSubreaditPostComment = (
     >
 ) => {
     const queryClient = useQueryClient();
+    const { addToast, dismissToast } = useRequestErrorToast();
+
     return useMutation(
         (data: CreatePostCommentData) => {
             return createSubreaditPostComment(data);
         },
         {
             ...options,
+            onError: (error, variables, context) => {
+                addToast(
+                    error,
+                    'An error occured when submitting. Please try again.'
+                );
+
+                options?.onError?.(error, variables, context);
+            },
             onSuccess: (data, variables, context) => {
+                dismissToast();
+
                 queryClient.invalidateQueries(
                     POST_COMMENT_KEY.postId(variables.postId)
                 );

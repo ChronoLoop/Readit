@@ -2,10 +2,18 @@ import { ComponentPropsWithoutRef } from 'react';
 import cx from 'classnames';
 import styles from './Icon.module.scss';
 
-interface IconProps extends ComponentPropsWithoutRef<'i'> {}
+const ICON_SIZES = {
+    sm: styles.icon_sm,
+    md: styles.icon_md,
+    lg: styles.icon_lg,
+};
 
-const Icon = ({ className, children }: IconProps) => {
-    return <i className={cx(className, styles.icon)}>{children}</i>;
+type IconProps = ComponentPropsWithoutRef<'i'> & {
+    size?: keyof typeof ICON_SIZES;
+};
+
+const Icon = ({ className, children, size = 'sm' }: IconProps) => {
+    return <i className={cx(className, ICON_SIZES[size])}>{children}</i>;
 };
 
 export default Icon;

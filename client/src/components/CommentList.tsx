@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
     CreatePostCommentData,
-    getServerErrorResponse,
     PostComments,
     PostCommentSchema,
     useCreateSubreaditPostComment,
@@ -13,11 +12,12 @@ import styles from './CommentList.module.scss';
 import { BsArrowsAngleExpand } from 'react-icons/bs';
 import Button from './Button';
 import VoteControls from './VoteControls';
-import { FaRegCommentAlt } from 'react-icons/fa';
+import { FaCommentAlt, FaRegCommentAlt } from 'react-icons/fa';
 import CommentTextArea from './CommentTextArea';
 import useUserStore from 'store/user';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import ContentError from './ContentError';
 
 interface CommentReplyInputProps {
     postId: number;
@@ -44,13 +44,11 @@ const CommentReplyInput = ({
         },
     });
 
-    const { mutate, isLoading, isError, error } = useCreateSubreaditPostComment(
-        {
-            onSuccess: () => {
-                onClose();
-            },
-        }
-    );
+    const { mutate, isLoading } = useCreateSubreaditPostComment({
+        onSuccess: () => {
+            onClose();
+        },
+    });
 
     const onSubmit: SubmitHandler<CreatePostCommentData> = (data) => {
         mutate(data);
@@ -63,11 +61,6 @@ const CommentReplyInput = ({
             disableTextArea={isLoading}
             isLoading={isLoading}
             disableSubmitButton={!isValid || isLoading}
-            error={
-                isError &&
-                (getServerErrorResponse(error)?.error ||
-                    'An error occured when submitting. Please try again.')
-            }
         />
     );
 };
@@ -215,7 +208,16 @@ interface CommentListProps {
 }
 
 const CommentList = ({ comments }: CommentListProps) => {
-    if (!comments || !comments?.length) return <div>No comments</div>;
+    if (!comments || !comments?.length)
+        return (
+            <ContentError
+                icon={<FaCommentAlt size="100%" />}
+                title="No Comments Yet"
+                message="Be the first to share what you think"
+                iconSize="sm"
+                className={styles.no_comment_error}
+            />
+        );
 
     const baseComments = comments.filter(
         (comment) => comment.parentId === null

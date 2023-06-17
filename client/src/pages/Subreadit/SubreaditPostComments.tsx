@@ -1,20 +1,42 @@
 import axios from 'axios';
-import { PostComments, Post, PageContentWrapper } from 'components';
+import cx from 'classnames';
+import {
+    PostComments,
+    Post,
+    PageContentWrapper,
+    ContentError,
+} from 'components';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
-import { useGetSubreaditPost } from 'services';
+import { getServerErrorResponse, useGetSubreaditPost } from 'services';
 import styles from './SubreaditPostComments.module.scss';
 import SubreaditTop from './SubreaditTop';
 
 const SubreaditPostCommentsContent = () => {
     const { postId = '' } = useParams();
-    const { data, isFetching, isFetchedAfterMount, error } =
-        useGetSubreaditPost(parseInt(postId));
+    const { data, isLoading, error } = useGetSubreaditPost(parseInt(postId));
 
-    if (isFetching || !isFetchedAfterMount)
-        return <div className={styles.container}>Fetching post...</div>;
+    if (isLoading) return <div className={styles.container} />;
     else if (axios.isAxiosError(error)) {
-        return <div className={styles.container}>Could not fetch post</div>;
-    } else if (!data) return <div className={styles.container}>no post</div>;
+        const errorMessage = getServerErrorResponse(error)?.error;
+        return (
+            <div className={cx(styles.container, styles.error)}>
+                <ContentError
+                    icon={<FaExclamationTriangle size={'100%'} />}
+                    title={errorMessage}
+                />
+            </div>
+        );
+    } else if (!data)
+        return (
+            <div className={cx(styles.container, styles.error)}>
+                <ContentError
+                    icon={<FaExclamationTriangle size={'100%'} />}
+                    title="Could not find post"
+                />
+            </div>
+        );
+
     return (
         <div className={styles.container}>
             <Post showSubreaditLink={false} postData={data} showCommentInput />

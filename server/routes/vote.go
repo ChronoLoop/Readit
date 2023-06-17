@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/ikevinws/readit/handlers"
 	"github.com/ikevinws/readit/middleware"
 )

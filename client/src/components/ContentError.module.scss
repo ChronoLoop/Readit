@@ -1,0 +1,49 @@
+@use 'styles/colors' as *;
+
+@mixin title_message($size) {
+    .title {
+        font-size: calc(1.3rem * $size);
+    }
+    .message {
+        font-size: calc(0.9rem * $size);
+    }
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    color: theme-var($color-opac-w-7);
+
+    &_sm {
+        @include title_message(0.8);
+    }
+    &_md {
+        @include title_message(1);
+    }
+    &_lg {
+        @include title_message(1.2);
+    }
+}
+
+.icon {
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-weight: 500;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+
+    &::first-letter {
+        text-transform: capitalize;
+    }
+}
+
+.message {
+    font-weight: 400;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}

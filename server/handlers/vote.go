@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
@@ -209,7 +209,8 @@ func GetVote(w http.ResponseWriter, r *http.Request) {
 		if issuerErr == nil {
 			commentVote, err := models.FindPostCommentVoteById(uint(voteTypeId), uint(issuer))
 			if err != nil {
-				common.RespondError(w, http.StatusBadRequest, err.Error())
+				commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, uint(voteTypeId))
+				common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 				return
 			}
 			commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, uint(voteTypeId))

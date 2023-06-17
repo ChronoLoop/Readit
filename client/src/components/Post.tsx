@@ -1,9 +1,5 @@
 import cx from 'classnames';
-import {
-    getServerErrorResponse,
-    PostData,
-    useCreateSubreaditPostComment,
-} from 'services';
+import { PostData, useCreateSubreaditPostComment } from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -25,6 +21,7 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
         register,
         handleSubmit,
         formState: { isValid },
+        resetField,
     } = useForm<CreatePostCommentData>({
         mode: 'onChange',
         resolver: zodResolver(PostCommentSchema),
@@ -34,11 +31,11 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
         },
     });
 
-    const { mutate, isLoading, isError, error } =
-        useCreateSubreaditPostComment();
+    const { mutate, isLoading } = useCreateSubreaditPostComment();
 
     const onSubmit: SubmitHandler<CreatePostCommentData> = (data) => {
         mutate(data);
+        resetField('text');
     };
 
     if (!user) return null;
@@ -52,11 +49,6 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
             disableTextArea={isLoading}
             isLoading={isLoading}
             disableSubmitButton={!isValid || isLoading}
-            error={
-                isError &&
-                (getServerErrorResponse(error)?.error ||
-                    'An error occured when submitting. Please try again.')
-            }
         />
     );
 };

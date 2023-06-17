@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { axiosPrivate } from './apiClient';
 import { useUserQuery } from './auth';
+import useRequestErrorToast from './useRequestErrorToast';
 import { POST_VOTE_KEYS } from './vote';
 
 export const POSTS_KEY = {
@@ -81,6 +82,7 @@ export const useGetSubreaditPost = (
             onSettled: () => {
                 queryClient.invalidateQueries(POST_VOTE_KEYS.postId(id));
             },
+            retry: 2,
         }
     );
 };
@@ -113,13 +115,26 @@ export const useCreateSubreaditPost = (
     >
 ) => {
     const queryClient = useQueryClient();
+    const { addToast, dismissToast } = useRequestErrorToast();
+
     return useMutation(
         (data: CreateSubreaditPostData) => {
             return createSubreaditPost(data);
         },
         {
             ...options,
+            onError: (error, variables, context) => {
+                addToast(
+                    error,
+                    'An error occured when submitting. Please try again.'
+                );
+
+                options?.onError?.(error, variables, context);
+            },
+
             onSuccess: (data, variables, context) => {
+                dismissToast();
+
                 queryClient.invalidateQueries(POSTS_KEY.all);
                 options?.onSuccess?.(data, variables, context);
             },

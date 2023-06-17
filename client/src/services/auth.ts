@@ -3,6 +3,7 @@ import { SignUpFormType } from 'components/modals/SignInModal/SignUpForm';
 import useUserStore from 'store/user';
 import {
     useMutation,
+    UseMutationOptions,
     useQuery,
     useQueryClient,
     UseQueryOptions,
@@ -13,6 +14,7 @@ import { POST_COMMENT_KEY } from './comment';
 import { POSTS_KEY } from './posts';
 import { SUBREADIT_KEYS } from './subreadit';
 import { PROFILE_KEY } from './profile';
+import useRequestErrorToast from './useRequestErrorToast';
 
 let accessToken = '';
 
@@ -120,10 +122,19 @@ const signIn = async (username: string, password: string) => {
 export const useSignIn = () => {
     const queryClient = useQueryClient();
     const setUser = useUserStore((s) => s.setUser);
+    const { addToast, dismissToast } = useRequestErrorToast();
+
     return useMutation(
         (data: SignInFormType) => signIn(data.username, data.password),
         {
+            onError: (error) => {
+                addToast(
+                    error,
+                    'An error occured when submitting. Please try again.'
+                );
+            },
             onSuccess: (res) => {
+                dismissToast();
                 setUser(res.user);
                 queryClient.invalidateQueries(AUTH_USER_KEY.all);
                 queryClient.invalidateQueries(POSTS_KEY.all);
@@ -145,11 +156,29 @@ const signUp = async (username: string, password: string) => {
     return response.data;
 };
 
-export const useSignUp = (options: { onSuccess: () => void }) => {
+export const useSignUp = (
+    options: Omit<
+        UseMutationOptions<null, unknown, SignUpFormType, unknown>,
+        'mutationFn'
+    >
+) => {
+    const { addToast, dismissToast } = useRequestErrorToast();
+
     return useMutation(
         (data: SignUpFormType) => signUp(data.username, data.password),
         {
             ...options,
+            onError: (error, variables, context) => {
+                addToast(
+                    error,
+                    'An error occured when submitting. Please try again.'
+                );
+                options?.onError?.(error, variables, context);
+            },
+            onSuccess: (data, variables, context) => {
+                dismissToast();
+                options?.onSuccess?.(data, variables, context);
+            },
         }
     );
 };
