@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { getServerErrorResponse, useCreateSubreadit } from 'services';
+import { useCreateSubreadit } from 'services';
 import { z } from 'zod';
 import styles from './CreateSubreaditModal.module.scss';
 import { Input, Button, ModalFrame, ModalFormWrapper } from 'components';
@@ -31,7 +31,7 @@ const CreateSubreaditModal = () => {
         resolver: zodResolver(SubreaditSchema),
     });
 
-    const { mutate, isLoading, isError, error } = useCreateSubreadit({
+    const { mutate, isLoading } = useCreateSubreadit({
         onSuccess: (_, submittedData) => {
             toggleShowCreateSubreaditModal();
             navigate(`/r/${submittedData.name}`);
@@ -49,14 +49,7 @@ const CreateSubreaditModal = () => {
             header={'Create a subreadit'}
             handleCloseModal={toggleShowCreateSubreaditModal}
         >
-            <ModalFormWrapper
-                error={
-                    isError &&
-                    (getServerErrorResponse(error)?.error ||
-                        'An error occured when submitting. Please try again.')
-                }
-                handleSubmit={handleSubmit(onSubmit)}
-            >
+            <ModalFormWrapper handleSubmit={handleSubmit(onSubmit)}>
                 <Input
                     id={'name'}
                     {...register('name')}

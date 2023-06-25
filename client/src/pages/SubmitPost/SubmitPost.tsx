@@ -10,11 +10,7 @@ import styles from './SubmitPost.module.scss';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TbCircleDashed } from 'react-icons/tb';
-import {
-    getServerErrorResponse,
-    useCreateSubreaditPost,
-    useGetUserSubreadits,
-} from 'services';
+import { useCreateSubreaditPost, useGetUserSubreadits } from 'services';
 import { useNavigate, useParams } from 'react-router-dom';
 import SubreaditPlaceholderIcon from 'icons/SubreaditPlaceholderIcon';
 
@@ -98,7 +94,7 @@ const CreatePostPage = () => {
         },
         resolver: zodResolver(SubreaditPostSchema),
     });
-    const { mutate, isLoading, isError, error } = useCreateSubreaditPost({
+    const { mutate, isLoading } = useCreateSubreaditPost({
         onSuccess: (_, variables) => {
             navigate(`/r/${variables.subreaditName}`);
         },
@@ -143,13 +139,6 @@ const CreatePostPage = () => {
                         >
                             Post
                         </Button>
-
-                        {isError && (
-                            <p className={styles.error} role="alert">
-                                {getServerErrorResponse(error)?.error ||
-                                    'An error occured when submitting. Please try again.'}
-                            </p>
-                        )}
                     </div>
                 </form>
             </div>

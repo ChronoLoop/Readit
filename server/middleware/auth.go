@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type contextKey string
@@ -25,7 +25,7 @@ func IsAuthorized(next http.Handler) http.Handler {
 		}
 		authTokenStr := splitAuthHeader[1]
 
-		token, err := jwt.ParseWithClaims(authTokenStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(authTokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 			secretKey := os.Getenv("JWT_SECRET")
 			return []byte(secretKey), nil
 		})
@@ -34,7 +34,7 @@ func IsAuthorized(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		claims := token.Claims.(*jwt.StandardClaims)
+		claims := token.Claims.(*jwt.RegisteredClaims)
 
 		ctx := context.WithValue(r.Context(), accessTokenClaimsContextKey, claims)
 		r = r.WithContext(ctx)
@@ -42,8 +42,8 @@ func IsAuthorized(next http.Handler) http.Handler {
 	})
 }
 
-func GetRequestAccessTokenClaims(r *http.Request) *jwt.StandardClaims {
-	return r.Context().Value(accessTokenClaimsContextKey).(*jwt.StandardClaims)
+func GetRequestAccessTokenClaims(r *http.Request) *jwt.RegisteredClaims {
+	return r.Context().Value(accessTokenClaimsContextKey).(*jwt.RegisteredClaims)
 }
 
 func GetJwtClaimsIssuer(r *http.Request) (int, error) {

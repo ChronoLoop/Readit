@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import useUserStore from 'store/user';
 import { axiosPrivate } from './apiClient';
+import useRequestErrorToast from './useRequestErrorToast';
 
 export const SUBREADIT_KEYS = {
     all: ['user-subreadits'] as const,
@@ -38,13 +39,26 @@ export const useCreateSubreadit = (
     >
 ) => {
     const queryClient = useQueryClient();
+
+    const { addToast, dismissToast } = useRequestErrorToast();
+
     return useMutation(
         (data: CreateSubreaditData) => {
             return createSubreadit(data);
         },
         {
             ...options,
+            onError: (error, variables, context) => {
+                addToast(
+                    error,
+                    'An error occured when submitting. Please try again.'
+                );
+
+                options?.onError?.(error, variables, context);
+            },
             onSuccess: (data, variables, context) => {
+                dismissToast();
+
                 queryClient.invalidateQueries(SUBREADIT_KEYS.all);
                 options?.onSuccess?.(data, variables, context);
             },

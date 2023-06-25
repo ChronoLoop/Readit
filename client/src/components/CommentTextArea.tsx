@@ -2,7 +2,6 @@ import { ComponentPropsWithoutRef, ReactNode } from 'react';
 import Breakline from './Breakline';
 import Button from './Button';
 import styles from './CommentTextArea.module.scss';
-import ErrorText from './ErrorText';
 import TextArea from './TextArea';
 
 interface CommentTextAreaProps {
@@ -22,7 +21,6 @@ const CommentTextArea = ({
     disableSubmitButton,
     textareaProps,
     handleSubmit,
-    error,
     showLine,
     isLoading,
 }: CommentTextAreaProps) => {
@@ -51,13 +49,6 @@ const CommentTextArea = ({
                         >
                             Comment
                         </Button>
-                        {error && (
-                            <ErrorText
-                                className={styles.post_comment_form_error}
-                            >
-                                {error}
-                            </ErrorText>
-                        )}
                     </div>
                 </form>
             </div>

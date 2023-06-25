@@ -16,3 +16,4 @@ export { default as PostsList } from './PostsList';
 export { default as SidebarWrapper } from './SidebarWrapper';
 export { default as TextArea } from './TextArea';
 export { default as AuthRoute } from './AuthRoute';
+export { default as ContentError } from './ContentError';

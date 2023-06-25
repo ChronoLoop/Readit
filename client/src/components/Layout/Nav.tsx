@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Nav.module.scss';
 import AuthControls from './AuthControls';
 import AuthMiddleware from 'middleware/AuthMiddleware';
@@ -7,11 +7,11 @@ import { useSignOut } from 'services';
 import NavigationDropdown from './NavigationDropdown';
 import { FaPencilAlt } from 'react-icons/fa';
 import { GoSignOut } from 'react-icons/go';
+import useCreateSubreaditPostRoute from 'hooks/useCreateSubreaditPostRoute';
 
 const CreatePostButton = () => {
     const navigate = useNavigate();
-    const { subreaditName } = useParams();
-    const route = subreaditName ? `r/${subreaditName}/submit` : '/submit';
+    const route = useCreateSubreaditPostRoute();
 
     return (
         <Button

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-playground/validator"
-	"github.com/golang-jwt/jwt"
+	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
@@ -21,9 +21,9 @@ const refreshTokenCookieName string = "refresh_token"
 const refreshTokenExpirationTimeDuration time.Duration = time.Hour * 24 * 7
 
 func createJwtToken(secretKey string, issuer int, expirationTime time.Time) (string, error) {
-	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Issuer:    strconv.Itoa(issuer),
-		ExpiresAt: expirationTime.Unix(),
+		ExpiresAt: jwt.NewNumericDate(expirationTime),
 	})
 	return tokenClaims.SignedString([]byte(secretKey))
 }
@@ -137,7 +137,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	refreshToken, err := jwt.ParseWithClaims(refreshCookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+	refreshToken, err := jwt.ParseWithClaims(refreshCookie.Value, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		secretKey := os.Getenv("JWT_SECRET")
 		return []byte(secretKey), nil
 	})
@@ -154,7 +154,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	claims := refreshToken.Claims.(*jwt.StandardClaims)
+	claims := refreshToken.Claims.(*jwt.RegisteredClaims)
 	issuer, err := strconv.Atoi(claims.Issuer)
 
 	if err != nil {
@@ -210,7 +210,7 @@ func GetAccessTokenIssuer(r *http.Request) (int, error) {
 	}
 	authTokenStr := splitAuthHeader[1]
 
-	token, err := jwt.ParseWithClaims(authTokenStr, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(authTokenStr, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		secretKey := os.Getenv("JWT_SECRET")
 		return []byte(secretKey), nil
 	})
@@ -219,6 +219,6 @@ func GetAccessTokenIssuer(r *http.Request) (int, error) {
 		return 0, errors.New("claims invalid")
 	}
 
-	claims := token.Claims.(*jwt.StandardClaims)
+	claims := token.Claims.(*jwt.RegisteredClaims)
 	return strconv.Atoi(claims.Issuer)
 }

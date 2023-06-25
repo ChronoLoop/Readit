@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"

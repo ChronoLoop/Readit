@@ -1,8 +1,28 @@
 .icon {
-    $icon-max-width: 1.4rem;
+    &_sm {
+        $icon-max-width: 1.4rem;
 
-    width: $icon-max-width;
-    height: $icon-max-width;
-    max-width: $icon-max-width;
-    max-height: $icon-max-width;
+        width: $icon-max-width;
+        height: $icon-max-width;
+        max-width: $icon-max-width;
+        max-height: $icon-max-width;
+    }
+
+    &_md {
+        $icon-max-width: 2.4rem;
+
+        width: $icon-max-width;
+        height: $icon-max-width;
+        max-width: $icon-max-width;
+        max-height: $icon-max-width;
+    }
+
+    &_lg {
+        $icon-max-width: 3rem;
+
+        width: $icon-max-width;
+        height: $icon-max-width;
+        max-width: $icon-max-width;
+        max-height: $icon-max-width;
+    }
 }

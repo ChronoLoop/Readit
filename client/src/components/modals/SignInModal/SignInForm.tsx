@@ -1,5 +1,5 @@
 import { Button, Input, ModalFormWrapper } from 'components';
-import { getServerErrorResponse, useSignIn } from 'services';
+import { useSignIn } from 'services';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -22,21 +22,14 @@ const SignInForm = () => {
         resolver: zodResolver(SignInSchema),
     });
 
-    const { mutate, isLoading, isError, error } = useSignIn();
+    const { mutate, isLoading } = useSignIn();
 
     const onSubmit: SubmitHandler<SignInFormType> = (data) => {
         mutate(data);
     };
 
     return (
-        <ModalFormWrapper
-            handleSubmit={handleSubmit(onSubmit)}
-            error={
-                isError &&
-                (getServerErrorResponse(error)?.error ||
-                    'An error occured when submitting. Please try again.')
-            }
-        >
+        <ModalFormWrapper handleSubmit={handleSubmit(onSubmit)}>
             <Input
                 id={'username'}
                 {...register('username')}

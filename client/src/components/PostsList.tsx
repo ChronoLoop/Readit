@@ -4,6 +4,9 @@ import styles from './PostsList.module.scss';
 import PostCard from './PostCard';
 import CardWrapper from './CardWrapper';
 import { ReactNode } from 'react';
+import { ContentError } from 'components';
+import { useNavigate } from 'react-router-dom';
+import useCreateSubreaditPostRoute from 'hooks/useCreateSubreaditPostRoute';
 
 const PostCardLoading = () => {
     return (
@@ -42,7 +45,20 @@ interface PostsListProps {
 }
 
 const PostsList = ({ posts, showSubreaditLink = true }: PostsListProps) => {
-    if (!posts || posts.length === 0) return <div>no posts</div>;
+    const navigate = useNavigate();
+    const route = useCreateSubreaditPostRoute();
+
+    if (!posts || posts.length === 0)
+        return (
+            <ContentError
+                title="There are no posts in this subreadit"
+                message="Be the first to make a post"
+                buttonText="Add a post"
+                buttonCallback={() => {
+                    navigate(route);
+                }}
+            />
+        );
 
     const postsList = posts.map((postData) => {
         return (

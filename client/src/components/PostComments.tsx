@@ -1,21 +1,22 @@
 import { getServerErrorResponse, useGetPostComments } from 'services';
 import CommentList from './CommentList';
-import ErrorText from './ErrorText';
+import ContentError from './ContentError';
 
 interface PostCommentsProps {
     postId: number;
 }
 const PostComments = ({ postId }: PostCommentsProps) => {
-    const { data, isLoading, isFetching, isError, error } =
-        useGetPostComments(postId);
+    const { data, isLoading, isError, error } = useGetPostComments(postId);
 
-    if (isLoading || isFetching) return null;
+    if (isLoading) return null;
     else if (isError)
         return (
-            <ErrorText>
-                {getServerErrorResponse(error)?.error ??
-                    'An error occur, please try refreshing page.'}
-            </ErrorText>
+            <ContentError
+                title={
+                    getServerErrorResponse(error)?.error ??
+                    'An error occur, please try refreshing page.'
+                }
+            />
         );
 
     return <CommentList comments={data} />;

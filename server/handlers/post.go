@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
-	"github.com/go-playground/validator"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
