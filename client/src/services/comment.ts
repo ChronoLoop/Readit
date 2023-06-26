@@ -7,6 +7,7 @@ import {
 import useUserStore from 'store/user';
 import z from 'zod';
 import { axiosPrivate } from './apiClient';
+import { useUserQuery } from './auth';
 import { PROFILE_KEY } from './profile';
 import useRequestErrorToast from './useRequestErrorToast';
 
@@ -110,11 +111,12 @@ export const getPostComments = async (postId: number) => {
 };
 
 export const useGetPostComments = (postId: number) => {
+    const { isFetching } = useUserQuery({ refetchOnMount: false });
     return useQuery(
         POST_COMMENT_KEY.postId(postId),
         () => getPostComments(postId),
         {
-            enabled: !!postId,
+            enabled: !!postId && !isFetching,
         }
     );
 };
