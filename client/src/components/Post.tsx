@@ -1,14 +1,20 @@
 import cx from 'classnames';
-import { PostData, useCreateSubreaditPostComment } from 'services';
+import {
+    PostData,
+    useCreateSubreaditPostComment,
+    useGetPostComments,
+} from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import useUserStore from 'store/user';
-import { PostVoteControls } from 'components';
+import { PostComments, PostVoteControls } from 'components';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PostCommentSchema, CreatePostCommentData } from 'services';
 import CommentTextArea from './CommentTextArea';
+import { useEffect, useState } from 'react';
+import { createCommentTagId } from './CommentList';
 
 interface PostCommentInputProps {
     postId: number;
@@ -16,6 +22,20 @@ interface PostCommentInputProps {
 
 const PostCommentInput = ({ postId }: PostCommentInputProps) => {
     const user = useUserStore((s) => s.user);
+    const [newUserCommentId, setNewUserCommentId] = useState<number | null>(
+        null
+    );
+    const { isRefetching, isSuccess } = useGetPostComments(postId);
+
+    useEffect(() => {
+        if (newUserCommentId && !isRefetching && isSuccess) {
+            const newComment = document.getElementById(
+                createCommentTagId(newUserCommentId)
+            );
+            newComment?.scrollIntoView();
+            setNewUserCommentId(null);
+        }
+    }, [newUserCommentId, isSuccess, isRefetching]);
 
     const {
         register,
@@ -31,13 +51,16 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
         },
     });
 
-    const { mutate, isLoading } = useCreateSubreaditPostComment();
+    const { mutate, isLoading } = useCreateSubreaditPostComment({
+        onSuccess: (data) => {
+            if (data.commentId) setNewUserCommentId(data.commentId);
+        },
+    });
 
     const onSubmit: SubmitHandler<CreatePostCommentData> = (data) => {
         mutate(data);
         resetField('text');
     };
-
     if (!user) return null;
 
     return (
@@ -71,90 +94,101 @@ const Post = ({
     commentedOnUsername,
 }: PostProps) => {
     return (
-        <div className={cx(styles.container, className)}>
-            {commentedOnUsername ? (
-                <div className={cx(styles.comment, styles.comment_heading)}>
-                    <FaRegCommentAlt size={'1rem'} />
-                </div>
-            ) : (
-                <PostVoteControls
-                    totalVoteValue={postData.totalVoteValue}
-                    postId={postData.id}
-                    userVote={postData.userVote}
-                />
-            )}
-            <div className={styles.content}>
-                <div className={styles.general}>
-                    {commentedOnUsername && (
-                        <>
+        <>
+            <div className={cx(styles.container, className)}>
+                {commentedOnUsername ? (
+                    <div className={cx(styles.comment, styles.comment_heading)}>
+                        <FaRegCommentAlt size={'1rem'} />
+                    </div>
+                ) : (
+                    <PostVoteControls
+                        totalVoteValue={postData.totalVoteValue}
+                        postId={postData.id}
+                        userVote={postData.userVote}
+                    />
+                )}
+                <div className={styles.content}>
+                    <div className={styles.general}>
+                        {commentedOnUsername && (
+                            <>
+                                <Link
+                                    className={styles.user}
+                                    to={`/u/${commentedOnUsername}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    {commentedOnUsername}
+                                </Link>
+                                <span className={styles.muted}>
+                                    commented on
+                                </span>
+                                <span
+                                    className={cx(styles.general_title, {
+                                        [styles.muted]: bodyMuted,
+                                    })}
+                                >
+                                    {postData.title}
+                                </span>
+                                <span className={styles.muted}>•</span>
+                            </>
+                        )}
+                        {showSubreaditLink && (
                             <Link
-                                className={styles.user}
-                                to={`/u/${commentedOnUsername}`}
+                                className={styles.subreadit}
+                                to={`/r/${postData.subreadit.name}`}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                 }}
                             >
-                                {commentedOnUsername}
+                                {'r/' + postData.subreadit.name}
                             </Link>
-                            <span className={styles.muted}>commented on</span>
-                            <span
-                                className={cx(styles.general_title, {
-                                    [styles.muted]: bodyMuted,
+                        )}
+                        {commentedOnUsername && (
+                            <span className={styles.muted}>•</span>
+                        )}
+                        <span className={styles.muted}>
+                            Posted by{' '}
+                            <Link
+                                className={styles.user}
+                                to={`/u/${postData.user.username}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                            >
+                                u/{postData.user.username}
+                            </Link>
+                        </span>
+                    </div>
+                    {!commentedOnUsername && (
+                        <>
+                            <div
+                                className={cx(styles.content_body, {
+                                    [styles.content_body_muted]: bodyMuted,
                                 })}
                             >
-                                {postData.title}
-                            </span>
-                            <span className={styles.muted}>•</span>
+                                <h3 className={styles.title}>
+                                    {postData.title}
+                                </h3>
+                                {postData.text && (
+                                    <p className={styles.text}>
+                                        {postData.text}
+                                    </p>
+                                )}
+                            </div>
+                            <div className={styles.comment}>
+                                <FaRegCommentAlt size={'1rem'} />
+                                {postData.numberOfComments} comments
+                            </div>
                         </>
                     )}
-                    {showSubreaditLink && (
-                        <Link
-                            className={styles.subreadit}
-                            to={`/r/${postData.subreadit.name}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                            }}
-                        >
-                            {'r/' + postData.subreadit.name}
-                        </Link>
+                    {showCommentInput && (
+                        <PostCommentInput postId={postData.id} />
                     )}
-                    {commentedOnUsername && (
-                        <span className={styles.muted}>•</span>
-                    )}
-                    <span className={styles.muted}>
-                        Posted by{' '}
-                        <Link
-                            className={styles.user}
-                            to={`/u/${postData.user.username}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                            }}
-                        >
-                            u/{postData.user.username}
-                        </Link>
-                    </span>
                 </div>
-                {!commentedOnUsername && (
-                    <>
-                        <div
-                            className={cx(styles.content_body, {
-                                [styles.content_body_muted]: bodyMuted,
-                            })}
-                        >
-                            <h3 className={styles.title}>{postData.title}</h3>
-                            {postData.text && (
-                                <p className={styles.text}>{postData.text}</p>
-                            )}
-                        </div>
-                        <div className={styles.comment}>
-                            <FaRegCommentAlt size={'1rem'} />
-                            {postData.numberOfComments} comments
-                        </div>
-                    </>
-                )}
-                {showCommentInput && <PostCommentInput postId={postData.id} />}
             </div>
-        </div>
+            {showCommentInput && <PostComments postId={postData.id} />}
+        </>
     );
 };
 

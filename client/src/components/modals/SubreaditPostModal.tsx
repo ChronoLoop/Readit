@@ -1,5 +1,5 @@
-import { PostComments, Post } from 'components';
 import ModalFrame from 'components/ModalFrame';
+import Post from 'components/Post';
 import { useGetSubreaditPost } from 'services';
 import styles from './SubreaditPostModal.module.scss';
 
@@ -30,12 +30,7 @@ const SubreaditPostCommentsModal = ({
             handleCloseModal={handleCloseModal}
         >
             <div className={styles.modal_content}>
-                {showData && (
-                    <>
-                        <Post postData={data} showCommentInput />
-                        <PostComments postId={data.id} />
-                    </>
-                )}
+                {showData && <Post postData={data} showCommentInput />}
             </div>
         </ModalFrame>
     );
