@@ -20,14 +20,26 @@ export const PostCommentSchema = z.object({
 
 export type CreatePostCommentData = z.infer<typeof PostCommentSchema>;
 
+type CreatePostcommentResponse = {
+    commentId: number;
+};
+
 const createSubreaditPostComment = async (data: CreatePostCommentData) => {
-    const response = await axiosPrivate.post('comment/create', data);
+    const response = await axiosPrivate.post<CreatePostcommentResponse>(
+        'comment/create',
+        data
+    );
     return response.data;
 };
 
 export const useCreateSubreaditPostComment = (
     options?: Omit<
-        UseMutationOptions<null, unknown, CreatePostCommentData, unknown>,
+        UseMutationOptions<
+            CreatePostcommentResponse,
+            unknown,
+            CreatePostCommentData,
+            unknown
+        >,
         'mutationFn'
     >
 ) => {

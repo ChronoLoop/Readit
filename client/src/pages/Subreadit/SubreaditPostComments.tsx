@@ -1,11 +1,6 @@
 import axios from 'axios';
 import cx from 'classnames';
-import {
-    PostComments,
-    Post,
-    PageContentWrapper,
-    ContentError,
-} from 'components';
+import { Post, PageContentWrapper, ContentError } from 'components';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
 import { getServerErrorResponse, useGetSubreaditPost } from 'services';
@@ -40,7 +35,6 @@ const SubreaditPostCommentsContent = () => {
     return (
         <div className={styles.container}>
             <Post showSubreaditLink={false} postData={data} showCommentInput />
-            <PostComments postId={data.id} />
         </div>
     );
 };

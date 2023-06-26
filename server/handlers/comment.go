@@ -11,6 +11,10 @@ import (
 	"github.com/ikevinws/readit/models"
 )
 
+type CommentResponse struct {
+	CommentId uint `json:"commentId"`
+}
+
 func CreateComment(w http.ResponseWriter, r *http.Request) {
 	var comment models.PostComment
 
@@ -39,8 +43,9 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	commentResponse := CommentResponse{CommentId: comment.ID}
 
+	common.RespondJSON(w, http.StatusCreated, commentResponse)
 }
 
 func GetComments(w http.ResponseWriter, r *http.Request) {

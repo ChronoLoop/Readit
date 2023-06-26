@@ -97,6 +97,10 @@ const CommentVoteControls = ({
     );
 };
 
+export const createCommentTagId = (id: number) => {
+    return `post-comment-${id}`;
+};
+
 interface CommentProps {
     comment: PostComments[number];
     comments: PostComments;
@@ -122,7 +126,10 @@ const Comment = ({ comment, comments }: CommentProps) => {
     };
 
     return (
-        <div className={styles.comment_container}>
+        <div
+            className={styles.comment_container}
+            id={createCommentTagId(comment.id)}
+        >
             {isOpen ? (
                 <>
                     <div
