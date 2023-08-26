@@ -34,12 +34,18 @@ const PostCard = ({
     const { mutate } = useCreateUserReadPost();
     const [clicked, setClicked] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [scrollToComments, setScrollToComments] = useState(false);
 
-    const userOwnsPost = username === postData.user.username;
+    const userOwnsPost = username === postData.user?.username;
     const canHidePostContent = !!(
         userComments?.length &&
         (hidePostContent || !userOwnsPost)
     );
+
+    const handleCloseModal = () => {
+        setShowModal((prev) => !prev);
+        setScrollToComments(false);
+    };
 
     return (
         <>
@@ -69,6 +75,10 @@ const PostCard = ({
                         commentedOnUsername={
                             (canHidePostContent && username) || ''
                         }
+                        openModalToComments={() => {
+                            setShowModal(true);
+                            setScrollToComments(true);
+                        }}
                     />
                 </div>
                 {userComments && userComments.length && (
@@ -106,8 +116,9 @@ const PostCard = ({
                 <SubreaditPostCommentsModal
                     prevLocation={prevLocation}
                     postId={postData.id}
+                    scrollToComments={scrollToComments}
                     closeModal={() => {
-                        setShowModal((prev) => !prev);
+                        handleCloseModal();
                     }}
                 />
             )}

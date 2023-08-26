@@ -1,6 +1,6 @@
 module github.com/ikevinws/readit
 
-go 1.20
+go 1.21
 
 require (
 	github.com/go-chi/chi/v5 v5.0.8
@@ -11,7 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.10.0
 	gorm.io/driver/postgres v1.5.2
-	gorm.io/gorm v1.25.1
+	gorm.io/gorm v1.25.4
 )
 
 require (

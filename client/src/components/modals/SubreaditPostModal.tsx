@@ -7,12 +7,14 @@ interface SubreaditPostCommentsModalProps {
     postId: number;
     closeModal: () => void;
     prevLocation: string;
+    scrollToComments: boolean;
 }
 
 const SubreaditPostCommentsModal = ({
     postId,
     closeModal,
     prevLocation,
+    scrollToComments,
 }: SubreaditPostCommentsModalProps) => {
     const { data, isLoading } = useGetSubreaditPost(postId);
 
@@ -30,7 +32,13 @@ const SubreaditPostCommentsModal = ({
             handleCloseModal={handleCloseModal}
         >
             <div className={styles.modal_content}>
-                {showData && <Post postData={data} showCommentInput />}
+                {showData && (
+                    <Post
+                        postData={data}
+                        showCommentInput
+                        scrollToComments={scrollToComments}
+                    />
+                )}
             </div>
         </ModalFrame>
     );

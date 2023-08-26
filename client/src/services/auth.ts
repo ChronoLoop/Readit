@@ -99,13 +99,13 @@ export const useSignOut = () => {
     return useMutation(signOut, {
         onSuccess: () => {
             setUser(null);
-            queryClient.invalidateQueries(AUTH_USER_KEY.all);
-            queryClient.invalidateQueries(POSTS_KEY.all);
-            queryClient.invalidateQueries(POST_COMMENT_KEY.all);
-            queryClient.invalidateQueries(POST_VOTE_KEYS.all);
-            queryClient.invalidateQueries(POST_COMMENT_VOTE_KEYS.all);
-            queryClient.invalidateQueries(SUBREADIT_KEYS.all);
-            queryClient.invalidateQueries(PROFILE_KEY.all);
+            queryClient.removeQueries(AUTH_USER_KEY.all);
+            queryClient.removeQueries(POSTS_KEY.all);
+            queryClient.removeQueries(POST_COMMENT_KEY.all);
+            queryClient.removeQueries(POST_VOTE_KEYS.all);
+            queryClient.removeQueries(POST_COMMENT_VOTE_KEYS.all);
+            queryClient.removeQueries(SUBREADIT_KEYS.all);
+            queryClient.removeQueries(PROFILE_KEY.all);
         },
     });
 };

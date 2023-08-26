@@ -5,6 +5,7 @@ import {
     useQueryClient,
     UseQueryOptions,
 } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { axiosPrivate } from './apiClient';
 import { useUserQuery } from './auth';
 import useRequestErrorToast from './useRequestErrorToast';
@@ -26,7 +27,7 @@ export interface PostData {
     totalVoteValue: number;
     text: string;
     createAt: string;
-    user: {
+    user?: {
         id: number;
         username: string;
     };
@@ -193,6 +194,54 @@ export const useCreateUserReadPost = (
             ...options,
             onSuccess: (data, variables, context) => {
                 options?.onSuccess?.(data, variables, context);
+            },
+        }
+    );
+};
+
+const deleteUserPost = async (postId: number) => {
+    const response = await axiosPrivate.delete<null>(`post/${postId}`);
+    return response.data;
+};
+
+export const useDeleteUserPost = (
+    options?: Omit<
+        UseMutationOptions<
+            null,
+            unknown,
+            { postId: number; subreaditName: string },
+            unknown
+        >,
+        'mutationFn'
+    >
+) => {
+    const { addToast } = useRequestErrorToast();
+    const queryClient = useQueryClient();
+    return useMutation(
+        ({ postId }) => {
+            return deleteUserPost(postId);
+        },
+        {
+            ...options,
+            onSuccess: (data, variables, context) => {
+                toast('Post has been deleted', {
+                    position: 'bottom-center',
+                    type: 'success',
+                    autoClose: 5000,
+                });
+
+                queryClient.invalidateQueries(
+                    POSTS_KEY.subreadit(variables.subreaditName)
+                );
+                options?.onSuccess?.(data, variables, context);
+            },
+            onError: (error, variables, context) => {
+                addToast(
+                    error,
+                    'An error occured when deleting. Please try again.'
+                );
+
+                options?.onError?.(error, variables, context);
             },
         }
     );

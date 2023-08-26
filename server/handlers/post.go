@@ -19,15 +19,11 @@ type CreateSubreaditPostRequestBody struct {
 }
 
 func createResponsePost(post *models.Post) models.PostSerializer {
-	userSerialized := CreateResponseUser(&post.User)
 	subreaditSerialized := CreateResponseSubreadit(&post.Subreadit)
 	postSerialized := models.PostSerializer{
 		ID:        post.ID,
-		Title:     post.Title,
-		Text:      post.Text,
 		CreatedAt: post.CreatedAt,
 		UpdatedAt: post.UpdatedAt,
-		User:      userSerialized,
 		Subreadit: subreaditSerialized,
 	}
 	numberOfComments, err := models.GetPostCommentCount(post.ID)
@@ -37,6 +33,16 @@ func createResponsePost(post *models.Post) models.PostSerializer {
 	totalVoteValue, err := models.GetPostTotalVoteValue(post.ID)
 	if err == nil {
 		postSerialized.TotalVoteValue = totalVoteValue
+	}
+	if !post.DeletedAt.Time.IsZero() {
+		postSerialized.Title = "[deleted]"
+		postSerialized.Text = "[deleted]"
+		postSerialized.User = nil
+	} else {
+		userSerialized := CreateResponseUser(&post.User)
+		postSerialized.User = &userSerialized
+		postSerialized.Title = post.Title
+		postSerialized.Text = post.Text
 	}
 	return postSerialized
 }
@@ -278,4 +284,36 @@ func GetUserReadPost(w http.ResponseWriter, r *http.Request) {
 
 	userReadPostResponse := createUserReadPostResponse(&userReadPost)
 	common.RespondJSON(w, http.StatusOK, userReadPostResponse)
+}
+
+func DeleteUserPost(w http.ResponseWriter, r *http.Request) {
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	postIdParam := chi.URLParam(r, "id")
+	if postIdParam == "" {
+		common.RespondJSON(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+	postId, postIdErr := strconv.Atoi(postIdParam)
+	if postIdErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "could not get post")
+		return
+	}
+
+	if _, err := models.FindPostById(uint(postId)); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := models.DeletePost(uint(postId), uint(issuer)); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

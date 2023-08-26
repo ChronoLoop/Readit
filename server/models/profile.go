@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/ikevinws/readit/db"
@@ -21,7 +22,9 @@ func GetUserOverviewPostsAndComments(userId uint) ([]PostWithComments, error) {
 
 		subreadits.name as subreadit_name,
 		post_users.username as post_username,
-		posts.id, posts.created_at, posts.updated_at, posts.title, posts.user_id, posts.subreadit_id, posts.text,
+		posts.id, 
+		posts.created_at, posts.updated_at, posts.deleted_at,
+		posts.title, posts.user_id, posts.subreadit_id, posts.text,
 		(SELECT sum(value) FROM post_votes WHERE post_id = posts.id) as totalVoteValue,
 		(SELECT count(*) FROM post_comments WHERE post_id = posts.id AND post_comments.deleted_at IS NULL) as numberOfComments,
 
@@ -55,7 +58,7 @@ func GetUserOverviewPostsAndComments(userId uint) ([]PostWithComments, error) {
 		LEFT JOIN post_comment_votes
 		ON post_comment_votes.post_comment_id = post_comments.id AND post_comment_votes.user_id = ?
 
-		where post_comments.user_id = ? or posts.user_id = ?
+		where (post_comments.user_id = ? or posts.user_id = ?)
 		ORDER BY posts.created_at DESC, post_comments.created_at DESC;
 	`
 	rows, err := db.Connection.Raw(query, userId, userId, userId, userId, userId, userId).Rows()
@@ -67,15 +70,19 @@ func GetUserOverviewPostsAndComments(userId uint) ([]PostWithComments, error) {
 	defer rows.Close()
 	for rows.Next() {
 		post := PostSerializer{}
+		postUser := UserSerializer{}
 		postComment := PostCommentSerializer{}
+		var deletedAt sql.NullTime
 
 		postUserVote := UserVoteSerializer{}
 		postCommentUserVote := UserVoteSerializer{}
 
 		rows.Scan(
 			&post.Subreadit.Name,
-			&post.User.Username,
-			&post.ID, &post.CreatedAt, &post.UpdatedAt, &post.Title, &post.User.ID, &post.Subreadit.ID, &post.Text,
+			&postUser.Username,
+			&post.ID,
+			&post.CreatedAt, &post.UpdatedAt, &deletedAt,
+			&post.Title, &postUser.ID, &post.Subreadit.ID, &post.Text,
 			&post.TotalVoteValue,
 			&post.NumberOfComments,
 
@@ -89,6 +96,18 @@ func GetUserOverviewPostsAndComments(userId uint) ([]PostWithComments, error) {
 			&postCommentUserVote.UserID,
 			&postCommentUserVote.Value,
 		)
+
+		if postUser.ID != 0 {
+			post.User = &postUser
+		}
+
+		if deletedAt.Valid && post.NumberOfComments == 0 {
+			continue
+		} else if deletedAt.Valid {
+			post.Title = "[deleted]"
+			post.Text = "[deleted]"
+			post.User = nil
+		}
 
 		if postUserVote.UserID != 0 {
 			post.UserVote = &postUserVote

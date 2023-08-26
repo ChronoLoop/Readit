@@ -25,7 +25,7 @@ type PostSerializer struct {
 	Text             string              `json:"text"`
 	CreatedAt        time.Time           `json:"createAt"`
 	UpdatedAt        time.Time           `json:"updatedAt"`
-	User             UserSerializer      `json:"user"`
+	User             *UserSerializer     `json:"user,omitempty"`
 	Subreadit        SubreaditSerializer `json:"subreadit"`
 	NumberOfComments int64               `json:"numberOfComments"`
 	UserVote         *UserVoteSerializer `json:"userVote,omitempty"`
@@ -56,7 +56,7 @@ func CreatePost(post *Post) error {
 
 func GetPosts() ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Joins("Subreadit").Joins("User").Order("created_at DESC").Find(&posts).Error; err != nil {
 		return posts, errors.New("posts could not be obtained")
 	}
 	return posts, nil
@@ -64,7 +64,7 @@ func GetPosts() ([]Post, error) {
 
 func GetPostsBySubreaditId(subreaditId uint) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Where("subreadit_id = ?", subreaditId).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Order("created_at DESC").Where("subreadit_id = ?", subreaditId).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil
@@ -72,7 +72,7 @@ func GetPostsBySubreaditId(subreaditId uint) ([]Post, error) {
 
 func GetPostsBySubreaditName(subreaditName string) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Where("name = ?", subreaditName).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
+	if err := db.Connection.Where("name = ?", subreaditName).Joins("Subreadit").Joins("User").Order("created_at DESC").Find(&posts).Error; err != nil {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil
@@ -80,7 +80,7 @@ func GetPostsBySubreaditName(subreaditName string) ([]Post, error) {
 
 func FindPostById(id uint) (Post, error) {
 	post := Post{}
-	if err := db.Connection.Joins("User").Joins("Subreadit").Where("posts.id = ?", id).First(&post).Error; err != nil {
+	if err := db.Connection.Joins("User").Joins("Subreadit").Unscoped().Where("posts.id = ?", id).First(&post).Error; err != nil {
 		return post, errors.New("post does not exist")
 	}
 	return post, nil
@@ -99,4 +99,11 @@ func GetUserReadPost(userId uint, postId uint) (UserReadPost, error) {
 		return userReadPost, errors.New("post was not read by user")
 	}
 	return userReadPost, nil
+}
+
+func DeletePost(postId uint, userId uint) error {
+	if err := db.Connection.Where("id = ? AND user_id = ?", postId, userId).Delete(&Post{}).Error; err != nil {
+		return errors.New("post could not be deleted")
+	}
+	return nil
 }

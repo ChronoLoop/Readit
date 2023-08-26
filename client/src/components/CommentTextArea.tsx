@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef, ReactNode } from 'react';
+import cx from 'classnames';
 import Breakline from './Breakline';
 import Button from './Button';
 import styles from './CommentTextArea.module.scss';
@@ -13,6 +14,7 @@ interface CommentTextAreaProps {
     error?: ReactNode;
     showLine?: boolean;
     isLoading?: boolean;
+    className?: string;
 }
 
 const CommentTextArea = ({
@@ -23,10 +25,11 @@ const CommentTextArea = ({
     handleSubmit,
     showLine,
     isLoading,
+    className,
 }: CommentTextAreaProps) => {
     return (
         <>
-            <div className={styles.post_comment}>
+            <div className={cx(styles.post_comment, className)}>
                 {header && (
                     <h1 className={styles.post_comment_header}>{header}</h1>
                 )}
@@ -52,7 +55,7 @@ const CommentTextArea = ({
                     </div>
                 </form>
             </div>
-            {showLine && <Breakline />}
+            {showLine && <Breakline className={styles.breakline} />}
         </>
     );
 };

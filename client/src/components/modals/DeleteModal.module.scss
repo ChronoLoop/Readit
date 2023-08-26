@@ -1,0 +1,14 @@
+.modal {
+    display: flex;
+    flex-direction: column;
+    width: 24rem;
+
+    &_content {
+        line-height: 1.2;
+    }
+}
+
+.button {
+    margin-top: 1rem;
+    min-height: 1.675rem;
+}
