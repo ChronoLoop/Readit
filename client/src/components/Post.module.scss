@@ -59,8 +59,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-weight: 600;
-    color: theme-var($color-opac-w-7);
+    color: inherit;
 
     &_heading {
         margin-right: 0.3rem;
@@ -75,4 +74,23 @@
 
 .muted {
     color: theme-var($color-opac-w-7);
+}
+
+.options {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: theme-var($color-opac-w-7);
+}
+
+.delete {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+}
+
+.comment_input {
+    margin-top: 0.5rem;
 }

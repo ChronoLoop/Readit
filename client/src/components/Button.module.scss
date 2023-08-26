@@ -39,6 +39,13 @@
     i {
         display: flex;
     }
+
+    &_no_background {
+        background-color: transparent;
+        &:disabled {
+            background-color: transparent;
+        }
+    }
 }
 
 .primary {

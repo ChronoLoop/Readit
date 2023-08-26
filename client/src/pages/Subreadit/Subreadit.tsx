@@ -2,7 +2,7 @@ import { PostsList, PageContentWrapper, ContentError } from 'components';
 import { useGetSubreaditPosts } from 'services';
 import axios from 'axios';
 import { Route, Routes, useParams } from 'react-router-dom';
-import SubreaditSidebar from './SubreaditSidebar';
+// import SubreaditSidebar from './SubreaditSidebar';
 import SubreaditPostComments from './SubreaditPostComments';
 import SubreaditTop from './SubreaditTop';
 import { FaExclamationTriangle } from 'react-icons/fa';
@@ -22,7 +22,7 @@ const SubreaditIndex = () => {
                 <SubreaditTop />
                 <PageContentWrapper>
                     <PostsList.Loading />
-                    <SubreaditSidebar />
+                    {/* <SubreaditSidebar /> */}
                 </PageContentWrapper>
             </>
         );
@@ -55,7 +55,7 @@ const SubreaditIndex = () => {
             <SubreaditTop />
             <PageContentWrapper>
                 <PostsList posts={postsData} showSubreaditLink={false} />
-                <SubreaditSidebar />
+                {/* <SubreaditSidebar /> */}
             </PageContentWrapper>
         </>
     );

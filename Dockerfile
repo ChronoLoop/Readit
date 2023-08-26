@@ -7,7 +7,7 @@ RUN npm run build
 
 
 
-FROM golang:1.19-alpine AS serverBuilder
+FROM golang:1.21-alpine AS serverBuilder
 WORKDIR /app
 
 COPY ./server/. /app

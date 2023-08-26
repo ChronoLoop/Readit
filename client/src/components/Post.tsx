@@ -2,19 +2,29 @@ import cx from 'classnames';
 import {
     PostData,
     useCreateSubreaditPostComment,
+    useDeleteUserPost,
     useGetPostComments,
 } from 'services';
 import styles from './Post.module.scss';
-import { FaRegCommentAlt } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { FaRegCommentAlt, FaRegTrashAlt } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import useUserStore from 'store/user';
-import { PostComments, PostVoteControls } from 'components';
+import {
+    Button,
+    DeleteModal,
+    PostComments,
+    PostVoteControls,
+} from 'components';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PostCommentSchema, CreatePostCommentData } from 'services';
 import CommentTextArea from './CommentTextArea';
 import { useEffect, useState } from 'react';
 import { createCommentTagId } from './CommentList';
+
+export const createPostCommentInputTagId = (id: number) => {
+    return `post-comment-input-${id}`;
+};
 
 interface PostCommentInputProps {
     postId: number;
@@ -32,7 +42,7 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
             const newComment = document.getElementById(
                 createCommentTagId(newUserCommentId)
             );
-            newComment?.scrollIntoView();
+            newComment?.scrollIntoView({ behavior: 'smooth' });
             setNewUserCommentId(null);
         }
     }, [newUserCommentId, isSuccess, isRefetching]);
@@ -65,6 +75,7 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
 
     return (
         <CommentTextArea
+            className={styles.comment_input}
             header={`Comment as ${user.username}`}
             showLine
             handleSubmit={handleSubmit(onSubmit)}
@@ -76,6 +87,56 @@ const PostCommentInput = ({ postId }: PostCommentInputProps) => {
     );
 };
 
+type PostDeleteButtonProps = {
+    postId: number;
+    postUserId?: number;
+    subreaditName: string;
+    closeModal?: () => void;
+};
+
+const PostDeleteButton = ({
+    postUserId,
+    postId,
+    subreaditName,
+    closeModal,
+}: PostDeleteButtonProps) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const userId = useUserStore((s) => s.user?.id);
+    const navigate = useNavigate();
+    const { mutate, isLoading } = useDeleteUserPost({
+        onSuccess: () => {
+            navigate(`/r/${subreaditName}`);
+            closeModal?.();
+        },
+    });
+
+    if (!postUserId || userId !== postUserId) return null;
+
+    return (
+        <>
+            <Button
+                className={styles.delete}
+                onClick={() => {
+                    setIsModalOpen(true);
+                }}
+            >
+                <FaRegTrashAlt size={'1rem'} />
+                Delete
+            </Button>
+            {isModalOpen && (
+                <DeleteModal
+                    closeModal={() => setIsModalOpen(false)}
+                    itemToDelete={'post'}
+                    onDelete={() => {
+                        mutate({ postId, subreaditName });
+                    }}
+                    showSpinner={isLoading}
+                />
+            )}
+        </>
+    );
+};
+
 interface PostProps {
     postData: PostData;
     showSubreaditLink?: boolean;
@@ -83,6 +144,9 @@ interface PostProps {
     showCommentInput?: boolean;
     bodyMuted?: boolean;
     commentedOnUsername?: string;
+    closeModal?: () => void;
+    openModalToComments?: () => void;
+    scrollToComments?: boolean;
 }
 
 const Post = ({
@@ -92,7 +156,18 @@ const Post = ({
     showCommentInput = false,
     bodyMuted = false,
     commentedOnUsername,
+    closeModal,
+    openModalToComments,
+    scrollToComments,
 }: PostProps) => {
+    useEffect(() => {
+        if (scrollToComments) {
+            const commentInput = document.getElementById(
+                createPostCommentInputTagId(postData.id)
+            );
+            commentInput?.scrollIntoView();
+        }
+    }, [scrollToComments, postData.id]);
     return (
         <>
             <div className={cx(styles.container, className)}>
@@ -147,18 +222,20 @@ const Post = ({
                         {commentedOnUsername && (
                             <span className={styles.muted}>•</span>
                         )}
-                        <span className={styles.muted}>
-                            Posted by{' '}
-                            <Link
-                                className={styles.user}
-                                to={`/u/${postData.user.username}`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
-                                u/{postData.user.username}
-                            </Link>
-                        </span>
+                        {postData.user && (
+                            <span className={styles.muted}>
+                                Posted by{' '}
+                                <Link
+                                    className={styles.user}
+                                    to={`/u/${postData.user.username}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    u/{postData.user.username}
+                                </Link>
+                            </span>
+                        )}
                     </div>
                     {!commentedOnUsername && (
                         <>
@@ -176,14 +253,37 @@ const Post = ({
                                     </p>
                                 )}
                             </div>
-                            <div className={styles.comment}>
-                                <FaRegCommentAlt size={'1rem'} />
-                                {postData.numberOfComments} comments
+                            <div
+                                className={styles.options}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {openModalToComments ? (
+                                    <Button
+                                        className={styles.comment}
+                                        onClick={openModalToComments}
+                                    >
+                                        <FaRegCommentAlt size={'1rem'} />
+                                        {postData.numberOfComments} comments
+                                    </Button>
+                                ) : (
+                                    <div className={styles.comment}>
+                                        <FaRegCommentAlt size={'1rem'} />
+                                        {postData.numberOfComments} comments
+                                    </div>
+                                )}
+                                <PostDeleteButton
+                                    postUserId={postData.user?.id}
+                                    postId={postData.id}
+                                    subreaditName={postData.subreadit.name}
+                                    closeModal={closeModal}
+                                />
                             </div>
                         </>
                     )}
                     {showCommentInput && (
-                        <PostCommentInput postId={postData.id} />
+                        <div id={createPostCommentInputTagId(postData.id)}>
+                            <PostCommentInput postId={postData.id} />
+                        </div>
                     )}
                 </div>
             </div>
