@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/db"
+	dbconnection "github.com/ikevinws/readit/db/sqlc"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
 )
@@ -14,7 +17,7 @@ type SubreaditUserRequestBody struct {
 	SubreaditName string `json:"subreaditName" validate:"required,min=1"`
 }
 
-func createResponseSubreaditUser(subreaditUser *models.SubreaditUser) models.SubreaditUserSerializer {
+func createResponseSubreaditUser(subreaditUser *dbconnection.UserSubreaditsRow) models.SubreaditUserSerializer {
 	subreaditUserResponse := models.SubreaditUserSerializer{
 		ID:            subreaditUser.SubreaditID,
 		Role:          subreaditUser.Role,
@@ -26,7 +29,7 @@ func createResponseSubreaditUser(subreaditUser *models.SubreaditUser) models.Sub
 
 }
 
-func createResponseSubreaditUsers(subreaditUsers *[]models.SubreaditUser) []models.SubreaditUserSerializer {
+func createResponseSubreaditUsers(subreaditUsers *[]dbconnection.UserSubreaditsRow) []models.SubreaditUserSerializer {
 	subreaditUsersResponse := []models.SubreaditUserSerializer{}
 
 	for _, subreaditUser := range *subreaditUsers {
@@ -38,19 +41,23 @@ func createResponseSubreaditUsers(subreaditUsers *[]models.SubreaditUser) []mode
 }
 
 func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
-	var subreadit models.Subreadit
-	if err := json.NewDecoder(r.Body).Decode(&subreadit); err != nil {
+	type request struct {
+		Name string `json:"name" validate:"required,min=3,max=20,alphanum"`
+	}
+	var body request
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if _, err := models.FindSubreaditByName(subreadit.Name); err == nil {
+	ctx := context.Background()
+	if _, err := db.Connection.FindSubreaditByName(ctx, body.Name); err == nil {
 		common.RespondError(w, http.StatusBadRequest, "Subreadit already exists")
 		return
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(&subreadit); err != nil {
+	if err := validate.Struct(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
@@ -60,19 +67,17 @@ func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	if err := models.CreateSubreadit(&subreadit); err != nil {
+	subreadit, err := db.Connection.CreateSubreadit(ctx, body.Name)
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	subreaditUser := models.SubreaditUser{
-		UserID:      uint(issuer),
+	if err := db.Connection.JoinSubreadit(ctx, dbconnection.JoinSubreaditParams{
+		UserID:      issuer,
 		SubreaditID: subreadit.ID,
 		Role:        models.ModeratorRole.String(),
-	}
-
-	if err := models.JoinSubreadit(&subreaditUser); err != nil {
+	}); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -81,7 +86,8 @@ func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSubreadits(w http.ResponseWriter, r *http.Request) {
-	subreadits, err := models.GetSubreadits()
+	ctx := context.Background()
+	subreadits, err := db.Connection.GetSubreadits(ctx)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -96,7 +102,7 @@ func GetSubreadits(w http.ResponseWriter, r *http.Request) {
 	common.RespondJSON(w, http.StatusOK, subreaditsResponse)
 }
 
-func CreateResponseSubreadit(subreadit *models.Subreadit) models.SubreaditSerializer {
+func CreateResponseSubreadit(subreadit *dbconnection.Subreadit) models.SubreaditSerializer {
 	return models.SubreaditSerializer{
 		ID:   subreadit.ID,
 		Name: subreadit.Name,
@@ -121,19 +127,18 @@ func JoinSubreadit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreadit, err := models.FindSubreaditByName(requestBody.SubreaditName)
+	ctx := context.Background()
+	subreadit, err := db.Connection.FindSubreaditByName(ctx, requestBody.SubreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	subreaditUser := models.SubreaditUser{
-		UserID:      uint(issuer),
+	if err := db.Connection.JoinSubreadit(ctx, dbconnection.JoinSubreaditParams{
+		UserID:      issuer,
 		SubreaditID: subreadit.ID,
 		Role:        models.UserRole.String(),
-	}
-
-	if err := models.JoinSubreadit(&subreaditUser); err != nil {
+	}); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -159,18 +164,19 @@ func LeaveSubreadit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreadit, err := models.FindSubreaditByName(requestBody.SubreaditName)
+	ctx := context.Background()
+	subreadit, err := db.Connection.FindSubreaditByName(ctx, requestBody.SubreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if _, err := models.FindSubreaditUser(subreadit.ID, uint(issuer)); err != nil {
+	if _, err := db.Connection.FindSubreaditUser(ctx, dbconnection.FindSubreaditUserParams{UserID: issuer, SubreaditID: subreadit.ID}); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := models.LeaveSubreadit(subreadit.ID, uint(issuer)); err != nil {
+	if err := db.Connection.LeaveSubreadit(ctx, dbconnection.LeaveSubreaditParams{SubreaditID: subreadit.ID, UserID: issuer}); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -190,13 +196,14 @@ func GetSubreaditModerators(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreadit, err := models.FindSubreaditByName(requestBody.SubreaditName)
+	ctx := context.Background()
+	subreadit, err := db.Connection.FindSubreaditByName(ctx, requestBody.SubreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	subreaditAdmins, err := models.GetSubreaditModerators(subreadit.ID)
+	subreaditAdmins, err := db.Connection.GetSubreaditUsersByRole(ctx, dbconnection.GetSubreaditUsersByRoleParams{SubreaditID: subreadit.ID, Role: models.ModeratorRole.String()})
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -213,7 +220,8 @@ func GetUserSubreadits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userSubreadits, err := models.GetUserSubreadits(uint(issuer))
+	ctx := context.Background()
+	userSubreadits, err := db.Connection.GetUserSubreadits(ctx, issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -231,13 +239,14 @@ func GetSubreaditMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreadit, err := models.FindSubreaditByName(subreaditName)
+	ctx := context.Background()
+	subreadit, err := db.Connection.FindSubreaditByName(ctx, subreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	subreaditUser, err := models.FindSubreaditUser(subreadit.ID, uint(issuer))
+	subreaditUser, err := db.Connection.FindSubreaditUser(ctx, dbconnection.FindSubreaditUserParams{SubreaditID: subreadit.ID, UserID: issuer})
 	if err != nil {
 		common.RespondError(w, http.StatusNotFound, err.Error())
 		return

@@ -7,18 +7,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/db"
+	dbconnection "github.com/ikevinws/readit/db/sqlc"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
+	"golang.org/x/net/context"
 )
 
 type VoteResponse struct {
 	TotalVoteValue int64                      `json:"totalVoteValue"`
-	ID             uint                       `json:"id"`
+	ID             int64                      `json:"id"`
 	UserVote       *models.UserVoteSerializer `json:"userVote"`
 }
 
-func checkVoteValue(voteValue int) bool {
-	validValues := []int{-1, 0, 1}
+func checkVoteValue(voteValue int32) bool {
+	validValues := []int32{-1, 0, 1}
 	for _, value := range validValues {
 		if voteValue == value {
 			return true
@@ -27,7 +30,7 @@ func checkVoteValue(voteValue int) bool {
 	return false
 }
 
-func createPostVoteResponse(postVote *models.PostVote, totalVoteValue int64, postId uint) VoteResponse {
+func createPostVoteResponse(postVote *dbconnection.PostVote, totalVoteValue int64, postId int64) VoteResponse {
 	var userVote *models.UserVoteSerializer = nil
 	if postVote != nil {
 		userVote = &models.UserVoteSerializer{
@@ -43,7 +46,7 @@ func createPostVoteResponse(postVote *models.PostVote, totalVoteValue int64, pos
 	}
 }
 
-func createPostCommentVoteResponse(postCommentVote *models.PostCommentVote, totalVoteValue int64, commentId uint) VoteResponse {
+func createPostCommentVoteResponse(postCommentVote *dbconnection.PostCommentVote, totalVoteValue int64, commentId int64) VoteResponse {
 	var userVote *models.UserVoteSerializer = nil
 
 	if postCommentVote != nil {
@@ -63,8 +66,8 @@ func createPostCommentVoteResponse(postCommentVote *models.PostCommentVote, tota
 func CreateVote(w http.ResponseWriter, r *http.Request) {
 	voteType := chi.URLParam(r, "voteType")
 	vote := struct {
-		Value int  `json:"value"`
-		ID    uint `json:"id"`
+		Value int32 `json:"value"`
+		ID    int64 `json:"id"`
 	}{}
 
 	if err := json.NewDecoder(r.Body).Decode(&vote); err != nil {
@@ -79,7 +82,8 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 
 	switch voteType {
 	case "post":
-		post, err := models.FindPostById(vote.ID)
+		ctx := context.Background()
+		post, err := db.Connection.FindPostById(ctx, vote.ID)
 		if err != nil {
 			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
@@ -91,17 +95,15 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		prevPostVote, prevPostVoteErr := models.FindPostVoteById(post.ID, uint(issuer))
+		prevPostVote, prevPostVoteErr := db.Connection.FindPostVoteById(ctx, dbconnection.FindPostVoteByIdParams{UserID: issuer, PostID: post.ID})
 		if prevPostVoteErr != nil {
-			postVote := models.PostVote{
-				Vote: models.Vote{
-					UserID: uint(issuer),
-					Value:  vote.Value,
-				},
+			postVote := dbconnection.PostVote{
+				UserID: issuer,
+				Value:  vote.Value,
 				PostID: post.ID,
 			}
 
-			if err := models.CreatePostVote(&postVote); err != nil {
+			if err := db.Connection.CreatePostVote(ctx, dbconnection.CreatePostVoteParams{PostID: postVote.PostID, UserID: postVote.UserID, Value: postVote.Value}); err != nil {
 				common.RespondError(w, http.StatusBadRequest, err.Error())
 				return
 			}
@@ -110,7 +112,7 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := models.UpdatePostVoteValue(&prevPostVote, vote.Value); err != nil {
+		if err := db.Connection.UpdatePostVoteValue(ctx, dbconnection.UpdatePostVoteValueParams{Value: vote.Value, UserID: prevPostVote.UserID, PostID: prevPostVote.PostID}); err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -119,7 +121,8 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "comment":
-		comment, err := models.FindPostCommentById(vote.ID)
+		ctx := context.Background()
+		comment, err := db.Connection.FindPostCommentById(ctx, vote.ID)
 		if err != nil {
 			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
@@ -130,17 +133,15 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		prevCommentVote, prevCommentVoteErr := models.FindPostCommentVoteById(comment.ID, uint(issuer))
+		prevCommentVote, prevCommentVoteErr := db.Connection.FindPostCommentVoteById(ctx, dbconnection.FindPostCommentVoteByIdParams{PostCommentID: comment.ID, UserID: issuer})
 		if prevCommentVoteErr != nil {
-			commentVote := models.PostCommentVote{
-				Vote: models.Vote{
-					UserID: uint(issuer),
-					Value:  vote.Value,
-				},
+			commentVote := dbconnection.PostCommentVote{
+				UserID:        issuer,
+				Value:         vote.Value,
 				PostCommentID: comment.ID,
 			}
 
-			if err := models.CreatePostCommentVote(&commentVote); err != nil {
+			if err := db.Connection.CreatePostCommentVote(ctx, dbconnection.CreatePostCommentVoteParams{UserID: commentVote.UserID, Value: commentVote.Value, PostCommentID: commentVote.PostCommentID}); err != nil {
 				common.RespondError(w, http.StatusBadRequest, err.Error())
 				return
 			}
@@ -148,7 +149,7 @@ func CreateVote(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 			return
 		}
-		if err := models.UpdatePostCommentVoteValue(&prevCommentVote, vote.Value); err != nil {
+		if err := db.Connection.UpdatePostCommentVoteValue(ctx, dbconnection.UpdatePostCommentVoteValueParams{PostCommentID: prevCommentVote.PostCommentID, UserID: prevCommentVote.UserID, Value: vote.Value}); err != nil {
 			common.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -170,7 +171,7 @@ func GetVote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voteTypeId, voteTypeIdErr := strconv.Atoi(voteTypeIdParam)
+	voteTypeId, voteTypeIdErr := strconv.ParseInt(voteTypeIdParam, 10, 64)
 	if voteTypeIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Could not get vote")
 		return
@@ -180,44 +181,46 @@ func GetVote(w http.ResponseWriter, r *http.Request) {
 
 	switch voteType {
 	case "post":
-		totalVoteValue, err := models.GetPostTotalVoteValue(uint(voteTypeId))
+		ctx := context.Background()
+		totalVoteValue, err := db.Connection.GetPostTotalVoteValue(ctx, voteTypeId)
 		if err != nil {
 			totalVoteValue = 0
 		}
 		if issuerErr == nil {
-			postVote, err := models.FindPostVoteById(uint(voteTypeId), uint(issuer))
+			postVote, err := db.Connection.FindPostVoteById(ctx, dbconnection.FindPostVoteByIdParams{UserID: issuer, PostID: voteTypeId})
 			if err != nil {
-				postVoteResponse := createPostVoteResponse(nil, totalVoteValue, uint(voteTypeId))
+				postVoteResponse := createPostVoteResponse(nil, totalVoteValue, voteTypeId)
 				common.RespondJSON(w, http.StatusOK, postVoteResponse)
 				return
 			}
-			postVoteResponse := createPostVoteResponse(&postVote, totalVoteValue, uint(voteTypeId))
+			postVoteResponse := createPostVoteResponse(&postVote, totalVoteValue, voteTypeId)
 			common.RespondJSON(w, http.StatusOK, postVoteResponse)
 			return
 		}
 
-		postVoteResponse := createPostVoteResponse(nil, totalVoteValue, uint(voteTypeId))
+		postVoteResponse := createPostVoteResponse(nil, totalVoteValue, voteTypeId)
 		common.RespondJSON(w, http.StatusOK, postVoteResponse)
 		return
 
 	case "comment":
-		totalVoteValue, err := models.GetPostCommentTotalVoteValue(uint(voteTypeId))
+		ctx := context.Background()
+		totalVoteValue, err := db.Connection.GetPostCommentTotalVoteValue(ctx, voteTypeId)
 		if err != nil {
 			totalVoteValue = 0
 			return
 		}
 		if issuerErr == nil {
-			commentVote, err := models.FindPostCommentVoteById(uint(voteTypeId), uint(issuer))
+			commentVote, err := db.Connection.FindPostCommentVoteById(ctx, dbconnection.FindPostCommentVoteByIdParams{UserID: issuer, PostCommentID: voteTypeId})
 			if err != nil {
-				commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, uint(voteTypeId))
+				commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, voteTypeId)
 				common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 				return
 			}
-			commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, uint(voteTypeId))
+			commentVoteResponse := createPostCommentVoteResponse(&commentVote, totalVoteValue, voteTypeId)
 			common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 			return
 		}
-		commentVoteResponse := createPostCommentVoteResponse(nil, totalVoteValue, uint(voteTypeId))
+		commentVoteResponse := createPostCommentVoteResponse(nil, totalVoteValue, voteTypeId)
 		common.RespondJSON(w, http.StatusOK, commentVoteResponse)
 		return
 

@@ -1,24 +1,34 @@
 package handlers
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/db"
+	dbconnection "github.com/ikevinws/readit/db/sqlc"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
 )
 
 type CommentResponse struct {
-	CommentId uint `json:"commentId"`
+	CommentId int64 `json:"commentId"`
 }
 
 func CreateComment(w http.ResponseWriter, r *http.Request) {
-	var comment models.PostComment
+	type request struct {
+		UserID   int64         `json:"userID" validate:"required"`
+		Text     string        `json:"text" validate:"required,min=1"`
+		PostID   int64         `json:"postId" validate:"required"`
+		ParentID sql.NullInt64 `json:"parentId"`
+	}
+	var body request
 
-	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -30,15 +40,21 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment.UserID = issuer
+	body.UserID = int64(issuer)
 
 	validate := validator.New()
-	if err := validate.Struct(&comment); err != nil {
+	if err := validate.Struct(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
-
-	if err := models.CreatePostComment(&comment); err != nil {
+	ctx := context.Background()
+	comment, err := db.Connection.CreatePostComment(ctx, dbconnection.CreatePostCommentParams{
+		UserID:   body.UserID,
+		Text:     body.Text,
+		PostID:   body.PostID,
+		ParentID: body.ParentID,
+	})
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -57,13 +73,14 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Could not get comments")
 		return
 	}
 
-	comments, commentsErr := models.GetPostComments(uint(postId))
+	ctx := context.Background()
+	comments, commentsErr := db.Connection.GetPostComments(ctx, postId)
 	if commentsErr != nil {
 		common.RespondError(w, http.StatusBadRequest, commentsErr.Error())
 		return
@@ -78,7 +95,7 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 	common.RespondJSON(w, http.StatusOK, commentsResponse)
 }
 
-func createResponsePostComment(postComment *models.PostComment) models.PostCommentSerializer {
+func createResponsePostComment(postComment *dbconnection.GetPostCommentsRow) models.PostCommentSerializer {
 	userSerialized := CreateResponseUser(&postComment.User)
 	postCommentSerialized := models.PostCommentSerializer{
 		ID:        postComment.ID,
@@ -89,26 +106,27 @@ func createResponsePostComment(postComment *models.PostComment) models.PostComme
 		PostID:    postComment.PostID,
 	}
 
-	totalVoteValue, err := models.GetPostCommentTotalVoteValue(postComment.ID)
+	ctx := context.Background()
+	totalVoteValue, err := db.Connection.GetPostCommentTotalVoteValue(ctx, postComment.ID)
 	if err == nil {
 		postCommentSerialized.TotalVoteValue = totalVoteValue
 	}
 	return postCommentSerialized
 }
 
-func createResponseCommentWithUser(postComment *models.PostComment, userId int) models.PostCommentSerializer {
-	postResponse := createResponsePostComment(postComment)
-	postVote, err := models.FindPostCommentVoteById(postResponse.ID, uint(userId))
+func createResponseCommentWithUser(postComment *dbconnection.GetPostCommentsRow, userId int64) models.PostCommentSerializer {
+	postCommentResponse := createResponsePostComment(postComment)
+	ctx := context.Background()
+	postVote, err := db.Connection.FindPostCommentVoteById(ctx, dbconnection.FindPostCommentVoteByIdParams{UserID: userId, PostCommentID: postCommentResponse.ID})
 	if err == nil {
-		postResponse.UserVote = &models.UserVoteSerializer{
+		postCommentResponse.UserVote = &models.UserVoteSerializer{
 			UserID: postVote.UserID,
 			Value:  postVote.Value,
 		}
 	}
-	return postResponse
+	return postCommentResponse
 }
-
-func createResponseCommentsWithUser(postComments *[]models.PostComment, userId int) []models.PostCommentSerializer {
+func createResponseCommentsWithUser(postComments *[]dbconnection.GetPostCommentsRow, userId int64) []models.PostCommentSerializer {
 	postCommentsResponse := []models.PostCommentSerializer{}
 	for _, postComment := range *postComments {
 		postCommentSerialized := createResponseCommentWithUser(&postComment, userId)
@@ -117,7 +135,7 @@ func createResponseCommentsWithUser(postComments *[]models.PostComment, userId i
 	return postCommentsResponse
 }
 
-func CreateResponseComments(postComments *[]models.PostComment) []models.PostCommentSerializer {
+func CreateResponseComments(postComments *[]dbconnection.GetPostCommentsRow) []models.PostCommentSerializer {
 	postCommentsResponse := []models.PostCommentSerializer{}
 	for _, postComment := range *postComments {
 		postCommentSerialized := createResponsePostComment(&postComment)

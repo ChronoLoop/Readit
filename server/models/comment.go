@@ -1,10 +1,9 @@
 package models
 
 import (
-	"errors"
+	"database/sql"
 	"time"
 
-	"github.com/ikevinws/readit/db"
 	"gorm.io/gorm"
 )
 
@@ -19,49 +18,49 @@ type PostComment struct {
 }
 
 type PostCommentSerializer struct {
-	ID             uint                `json:"id"`
+	ID             int64               `json:"id"`
 	TotalVoteValue int64               `json:"totalVoteValue"`
 	Text           string              `json:"text"`
 	CreatedAt      time.Time           `json:"createAt"`
 	UpdatedAt      time.Time           `json:"updatedAt"`
 	User           UserSerializer      `json:"user"`
-	ParentID       *int                `json:"parentId"`
+	ParentID       sql.NullInt64       `json:"parentId"`
 	UserVote       *UserVoteSerializer `json:"userVote,omitempty"`
-	PostID         int                 `json:"postId"`
+	PostID         int64               `json:"postId"`
 }
 
-func CreatePostComment(comment *PostComment) error {
-	if err := db.Connection.Create(&comment).Error; err != nil {
-		return errors.New("comment could not be created")
-	}
-	return nil
-}
+// func CreatePostComment(comment *PostComment) error {
+// 	if err := db.Connection.Create(&comment).Error; err != nil {
+// 		return errors.New("comment could not be created")
+// 	}
+// 	return nil
+// }
 
-func GetPostComments(postId uint) ([]PostComment, error) {
-	postComments := []PostComment{}
-	if err := db.Connection.Where("post_id = ?", postId).Joins("User").Find(&postComments).Error; err != nil {
-		return postComments, errors.New("could not get comments")
-	}
-	return postComments, nil
-}
+// func GetPostComments(postId uint) ([]PostComment, error) {
+// 	postComments := []PostComment{}
+// 	if err := db.Connection.Where("post_id = ?", postId).Joins("User").Find(&postComments).Error; err != nil {
+// 		return postComments, errors.New("could not get comments")
+// 	}
+// 	return postComments, nil
+// }
 
-func FindPostCommentById(id uint) (PostComment, error) {
-	postComment := PostComment{}
-	if err := db.Connection.Where("id = ?", id).First(&postComment).Error; err != nil {
-		return postComment, errors.New("could not find comment")
-	}
-	return postComment, nil
-}
+// func FindPostCommentById(id uint) (PostComment, error) {
+// 	postComment := PostComment{}
+// 	if err := db.Connection.Where("id = ?", id).First(&postComment).Error; err != nil {
+// 		return postComment, errors.New("could not find comment")
+// 	}
+// 	return postComment, nil
+// }
 
-func UpdatePostCommentText(postComment *PostComment, text string) error {
-	if err := db.Connection.Model(postComment).Update("text", text); err != nil {
-		return errors.New("an error occured while updating comment")
-	}
-	return nil
-}
+// func UpdatePostCommentText(postComment *PostComment, text string) error {
+// 	if err := db.Connection.Model(postComment).Update("text", text); err != nil {
+// 		return errors.New("an error occured while updating comment")
+// 	}
+// 	return nil
+// }
 
-func GetPostCommentCount(postId uint) (int64, error) {
-	var count int64
-	db.Connection.Model(&PostComment{}).Where("post_id = ?", postId).Count(&count)
-	return count, nil
-}
+// func GetPostCommentCount(postId uint) (int64, error) {
+// 	var count int64
+// 	db.Connection.Model(&PostComment{}).Where("post_id = ?", postId).Count(&count)
+// 	return count, nil
+// }

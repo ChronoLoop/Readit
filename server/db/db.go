@@ -5,12 +5,11 @@ import (
 	"log"
 	"os"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	dbconnection "github.com/ikevinws/readit/db/sqlc"
+	"github.com/pressly/goose/v3"
 )
 
-var Connection *gorm.DB
+var Connection *dbconnection.Queries
 
 func Initialize() {
 	host, port, username, password, name :=
@@ -26,12 +25,15 @@ func Initialize() {
 		name,
 		port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+	db, err := goose.OpenDBWithDriver("postgres", dsn)
 	if err != nil {
 		log.Fatal("Could not connect database")
 	}
 
-	Connection = db
+	dir := "./schemas"
+	if err = goose.Up(db, dir); err != nil {
+		log.Fatal("Migrations failed")
+	}
+
+	Connection = dbconnection.New(db)
 }

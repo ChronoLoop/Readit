@@ -1,0 +1,24 @@
+-- +goose Up
+
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE time(
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON time
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TABLE base (
+    id BIGSERIAL PRIMARY KEY
+) INHERITS (time);

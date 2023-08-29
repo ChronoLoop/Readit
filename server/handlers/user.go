@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ikevinws/readit/common"
+	"github.com/ikevinws/readit/db"
+	dbconnection "github.com/ikevinws/readit/db/sqlc"
 	"github.com/ikevinws/readit/middleware"
 	"github.com/ikevinws/readit/models"
 	"golang.org/x/crypto/bcrypt"
@@ -20,15 +23,15 @@ import (
 const refreshTokenCookieName string = "refresh_token"
 const refreshTokenExpirationTimeDuration time.Duration = time.Hour * 24 * 7
 
-func createJwtToken(secretKey string, issuer int, expirationTime time.Time) (string, error) {
+func createJwtToken(secretKey string, issuer int64, expirationTime time.Time) (string, error) {
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    strconv.Itoa(issuer),
+		Issuer:    strconv.FormatInt(issuer, 10),
 		ExpiresAt: jwt.NewNumericDate(expirationTime),
 	})
 	return tokenClaims.SignedString([]byte(secretKey))
 }
 
-func generateAuthTokens(issuer int) (map[string]string, error) {
+func generateAuthTokens(issuer int64) (map[string]string, error) {
 	secretKey := os.Getenv("JWT_SECRET")
 
 	accessToken, err := createJwtToken(secretKey, issuer, time.Now().Add(time.Minute*20))
@@ -45,7 +48,7 @@ func generateAuthTokens(issuer int) (map[string]string, error) {
 	return map[string]string{"refreshToken": refreshToken, "accessToken": accessToken}, nil
 }
 
-func sendTokens(w http.ResponseWriter, issuer int, user *models.User) {
+func sendTokens(w http.ResponseWriter, issuer int64, user *dbconnection.User) {
 	authTokens, err := generateAuthTokens(issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, "Could not login")
@@ -72,27 +75,35 @@ func sendTokens(w http.ResponseWriter, issuer int, user *models.User) {
 }
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	type request struct {
+		Username string `json:"username" validate:"required,min=4,max=20,alphanum"`
+		Password string `json:"password" validate:"required,min=8,max=20"`
+	}
+	var body request
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(&user); err != nil {
+	if err := validate.Struct(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
 
-	if _, err := models.FindUserByName(user.Username); err == nil {
+	ctx := context.Background()
+	if _, err := db.Connection.FindUserByName(ctx, body.Username); err == nil {
 		common.RespondError(w, http.StatusBadRequest, "Username already exists")
 		return
 	}
 
-	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
-	user.Password = string(password)
+	password, _ := bcrypt.GenerateFromPassword([]byte(body.Password), 14)
+	body.Password = string(password)
 
-	if err := models.CreateUser(&user); err != nil {
+	if err := db.Connection.CreateUser(ctx, dbconnection.CreateUserParams{
+		Username: body.Username,
+		Password: body.Password,
+	}); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -101,25 +112,30 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	type request struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	var body request
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	dbUser, dbUserErr := models.FindUserByName(user.Username)
+	ctx := context.Background()
+	dbUser, dbUserErr := db.Connection.FindUserByName(ctx, body.Username)
 
 	if dbUserErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(body.Password)); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
-	sendTokens(w, int(dbUser.ID), &dbUser)
+	sendTokens(w, dbUser.ID, &dbUser)
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {
@@ -155,13 +171,15 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	claims := refreshToken.Claims.(*jwt.RegisteredClaims)
-	issuer, err := strconv.Atoi(claims.Issuer)
+	issuer, err := strconv.ParseInt(claims.Issuer, 10, 64)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user, err := models.FindUserById(issuer)
+
+	ctx := context.Background()
+	user, err := db.Connection.FindUserById(ctx, issuer)
 	if err != nil {
 		http.SetCookie(w, &http.Cookie{
 			Name:    refreshTokenCookieName,
@@ -183,7 +201,8 @@ func UserMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.FindUserById(issuer)
+	ctx := context.Background()
+	user, err := db.Connection.FindUserById(ctx, issuer)
 
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Could not find user")
@@ -194,14 +213,14 @@ func UserMe(w http.ResponseWriter, r *http.Request) {
 	common.RespondJSON(w, http.StatusOK, responseUser)
 }
 
-func CreateResponseUser(user *models.User) models.UserSerializer {
+func CreateResponseUser(user *dbconnection.User) models.UserSerializer {
 	return models.UserSerializer{
 		ID:       user.ID,
 		Username: user.Username,
 	}
 }
 
-func GetAccessTokenIssuer(r *http.Request) (int, error) {
+func GetAccessTokenIssuer(r *http.Request) (int64, error) {
 	authHeader := r.Header.Get("Authorization")
 
 	splitAuthHeader := strings.Split(authHeader, "Bearer ")
@@ -220,5 +239,5 @@ func GetAccessTokenIssuer(r *http.Request) (int, error) {
 	}
 
 	claims := token.Claims.(*jwt.RegisteredClaims)
-	return strconv.Atoi(claims.Issuer)
+	return strconv.ParseInt(claims.Issuer, 10, 64)
 }
