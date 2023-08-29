@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
@@ -8,86 +9,145 @@ import (
 )
 
 type Vote struct {
-	User      User `validate:"-"`
-	UserID    uint `json:"userId" gorm:"primaryKey;autoIncrement:false"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Value     int `json:"value"`
+	UserID    int64        `json:"userId" db:"user_id"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
+	Value     int32        `json:"value" db:"value"`
 }
 
 type PostVote struct {
 	Vote
-	Post   Post `validate:"-"`
-	PostID uint `json:"postId" gorm:"primaryKey;autoIncrement:false"`
+	PostID int64 `json:"postId" db:"post_id"`
 }
 
 type UserVoteSerializer struct {
-	Value  int  `json:"value"`
-	UserID uint `json:"userId"`
+	Value  int32 `json:"value"`
+	UserID int64 `json:"userId"`
 }
 
 type PostCommentVote struct {
 	Vote
-	PostComment   PostComment `validate:"-"`
-	PostCommentID uint        `json:"postCommentId" gorm:"primaryKey;autoIncrement:false"`
+	PostCommentID int64 `json:"postCommentId" db:"post_comment_id"`
 }
 
+const createPostVote = `
+INSERT INTO  post_votes (
+    user_id,
+    post_id,
+    value
+) values (
+    $1, $2, $3
+)
+`
+
 func CreatePostVote(postVote *PostVote) error {
-	if err := db.Connection.Create(&postVote).Error; err != nil {
-		return errors.New("post vote could not be created")
+	if _, err := db.Connection.Exec(createPostVote, postVote.UserID, postVote.PostID, postVote.Value); err != nil {
+		return errors.New("user could not be created")
 	}
 	return nil
 }
 
-func FindPostVoteById(postId uint, userId uint) (PostVote, error) {
+const findPostVoteById = `
+SELECT created_at, updated_at, deleted_at, user_id, value, post_id FROM post_votes
+WHERE post_id = $1 AND user_id = $2 LIMIT 1
+`
+
+func FindPostVoteById(postId int64, userId int64) (PostVote, error) {
 	postVote := PostVote{}
-	if err := db.Connection.Where("post_id = ? AND user_id = ?", postId, userId).First(&postVote).Error; err != nil {
-		return postVote, errors.New("post vote could not be found")
+	if err := db.Connection.Get(&postVote, findPostVoteById, postId, userId); err != nil {
+		return postVote, errors.New("user does not exist")
 	}
 	return postVote, nil
 }
 
-func UpdatePostVoteValue(postVote *PostVote, val int) error {
-	if err := db.Connection.Model(postVote).Update("value", val).Error; err != nil {
-		return errors.New("post vote could not be updated")
-	}
-	return nil
-}
+const updatePostVoteValue = `
+UPDATE post_votes
+SET value = $1
+WHERE user_id = $2 AND post_id = $3
+`
 
-func CreatePostCommentVote(postCommentVote *PostCommentVote) error {
-	if err := db.Connection.Create(&postCommentVote).Error; err != nil {
-		return errors.New("comment vote could not be created")
-	}
-	return nil
-}
-
-func FindPostCommentVoteById(postCommentId uint, userId uint) (PostCommentVote, error) {
-	postCommentVote := PostCommentVote{}
-	if err := db.Connection.Where("post_comment_id = ? AND user_id = ?", postCommentId, userId).First(&postCommentVote).Error; err != nil {
-		return postCommentVote, errors.New("post comment vote could not be found")
-	}
-	return postCommentVote, nil
-}
-
-func UpdatePostCommentVoteValue(postCommentVote *PostCommentVote, val int) error {
-	if err := db.Connection.Model(postCommentVote).Update("value", val).Error; err != nil {
+func UpdatePostVoteValue(postVote *PostVote, val int32) error {
+	if _, err := db.Connection.Exec(updatePostVoteValue, val, postVote.UserID, postVote.PostID); err != nil {
 		return errors.New("post comment vote could not be updated")
 	}
 	return nil
 }
 
-func GetPostTotalVoteValue(postId uint) (int64, error) {
+const createPostCommentVote = `
+INSERT INTO post_comment_votes (
+    user_id,
+    post_comment_id,
+    value
+) VALUES (
+    $1, $2, $3
+)
+`
+
+func CreatePostCommentVote(userId int64, postCommentId int64, val int) error {
+	if _, err := db.Connection.Exec(createPostCommentVote, userId, postCommentId, val); err != nil {
+		return errors.New("post comment vote could not be created")
+	}
+	return nil
+}
+
+const findPostCommentVoteById = `
+SELECT created_at, updated_at, deleted_at, user_id, value, post_comment_id
+FROM post_comment_votes
+WHERE post_comment_id = $1 AND user_id = $2 LIMIT 1
+`
+
+func FindPostCommentVoteById(postCommentId int64, userId int64) (PostCommentVote, error) {
+	postCommentVote := PostCommentVote{}
+	if err := db.Connection.Get(&postCommentVote, findPostCommentVoteById, postCommentId, userId); err != nil {
+		return postCommentVote, errors.New("post comment vote does not exist")
+	}
+	return postCommentVote, nil
+}
+
+const updatePostCommentVoteValue = `
+UPDATE post_comment_votes
+SET value = $1
+WHERE user_id = $2 AND post_comment_id = $3
+`
+
+type UpdatePostCommentVoteValueParams struct {
+	UserId        int64
+	PostCommentId int64
+	Val           int32
+}
+
+func UpdatePostCommentVoteValue(arg UpdatePostCommentVoteValueParams) error {
+	if _, err := db.Connection.Exec(updatePostVoteValue, arg.Val, arg.UserId, arg.PostCommentId); err != nil {
+		return errors.New("user could not be created")
+	}
+	return nil
+}
+
+const getPostTotalVoteValue = `
+SELECT SUM(value)
+FROM post_votes
+WHERE post_id = $1
+`
+
+func GetPostTotalVoteValue(postId int64) (int64, error) {
 	var total int64
-	if err := db.Connection.Model(&PostVote{}).Where("post_id = ?", postId).Select("sum(value)").Row().Scan(&total); err != nil {
+	if err := db.Connection.QueryRow(getPostTotalVoteValue, postId).Scan(&total); err != nil {
 		return total, errors.New("post total vote value could not be obtained")
 	}
 	return total, nil
 }
 
-func GetPostCommentTotalVoteValue(postCommentId uint) (int64, error) {
+const getPostCommentTotalVoteValue = `
+SELECT SUM(value)
+FROM post_comment_votes
+WHERE post_comment_id = $1
+`
+
+func GetPostCommentTotalVoteValue(postCommentId int64) (int64, error) {
 	var total int64
-	if err := db.Connection.Model(&PostCommentVote{}).Where("post_comment_id = ?", postCommentId).Select("sum(value)").Row().Scan(&total); err != nil {
-		return total, errors.New("post total vote value could not be obtained")
+	if err := db.Connection.QueryRow(getPostCommentTotalVoteValue, postCommentId).Scan(&total); err != nil {
+		return total, errors.New("post comment total vote value could not be obtained")
 	}
 	return total, nil
 }

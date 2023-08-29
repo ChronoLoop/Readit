@@ -1,25 +1,28 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
 	"github.com/ikevinws/readit/db"
-	"gorm.io/gorm"
 )
 
 type Post struct {
-	gorm.Model
-	Title       string    `json:"title" validate:"required,min=1"`
-	User        User      `validate:"-"`
-	UserID      int       `json:"userId" validate:"required"`
-	Subreadit   Subreadit `validate:"-"`
-	SubreaditID int       `json:"subreaditId" validate:"required"`
-	Text        string    `json:"text"`
+	CreatedAt   time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at" db:"updated_at"`
+	DeletedAt   sql.NullTime `json:"deleted_at" db:"deleted_at"`
+	ID          int64        `json:"id" db:"id"`
+	Title       string       `json:"title" validate:"required,min=1" db:"title"`
+	User        User         `validate:"-" db:"users"`
+	UserID      int64        `json:"userId" validate:"required" db:"user_id"`
+	Subreadit   Subreadit    `validate:"-" db:"subreadits"`
+	SubreaditID int64        `json:"subreaditId" validate:"required" db:"subreadit_id"`
+	Text        string       `json:"text" db:"text"`
 }
 
 type PostSerializer struct {
-	ID               uint                `json:"id"`
+	ID               int64               `json:"id"`
 	Title            string              `json:"title"`
 	TotalVoteValue   int64               `json:"totalVoteValue"`
 	Text             string              `json:"text"`
@@ -32,77 +35,256 @@ type PostSerializer struct {
 }
 
 type UserReadPost struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-	User      User           `validate:"-"`
-	UserID    int            `json:"userId" validate:"required" gorm:"primaryKey"`
-	Post      Post           `validate:"-"`
-	PostID    int            `json:"postId" validate:"required" gorm:"primaryKey"`
+	CreatedAt time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at" db:"updated_at"`
+	ReadAt    time.Time    `json:"read_at" db:"read_at"`
+	DeletedAt sql.NullTime `json:"deleted_at" db:"deleted_at"`
+	UserID    int64        `json:"userId" validate:"required" db:"user_id"`
+	PostID    int64        `json:"postId" validate:"required" db:"post_id"`
 }
 
 type UserReadPostSerializer struct {
 	CreatedAt time.Time `json:"createAt"`
-	UserID    int       `json:"userId"`
-	PostID    int       `json:"postId"`
+	UserID    int64     `json:"userId"`
+	PostID    int64     `json:"postId"`
 }
 
-func CreatePost(post *Post) error {
-	if err := db.Connection.Create(&post).Error; err != nil {
+const createPost = `
+INSERT INTO posts (
+    user_id,
+    subreadit_id,
+    title,
+    text
+) VALUES (
+    $1, $2, $3, $4
+)
+`
+
+func CreatePost(user_id int64, subreadit_id int64, title string, text string) error {
+	if _, err := db.Connection.Exec(createPost, user_id, subreadit_id, title, text); err != nil {
 		return errors.New("post could not be created")
 	}
 	return nil
 }
 
+const getPosts = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE posts.deleted_at IS NULL
+ORDER BY posts.created_at DESC
+`
+
 func GetPosts() ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Joins("Subreadit").Joins("User").Order("created_at DESC").Find(&posts).Error; err != nil {
-		return posts, errors.New("posts could not be obtained")
+	err := db.Connection.Select(&posts, getPosts)
+
+	if err != nil {
+		return posts, errors.New("could not get posts")
 	}
+
 	return posts, nil
 }
 
-func GetPostsBySubreaditId(subreaditId uint) ([]Post, error) {
+const getPostsBySubreaditId = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE subreadit_id = $1 AND posts.deleted_at is NULL
+ORDER BY posts.created_at DESC
+`
+
+func GetPostsBySubreaditId(subreaditId int64) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Order("created_at DESC").Where("subreadit_id = ?", subreaditId).Joins("Subreadit").Joins("User").Find(&posts).Error; err != nil {
+	err := db.Connection.Select(&posts, getPostsBySubreaditId)
+
+	if err != nil {
 		return posts, errors.New("could not get posts")
 	}
+
 	return posts, nil
 }
+
+const getPostsBySubreaditName = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE subreadits.name = $1 AND posts.deleted_at is NULL
+ORDER BY posts.created_at DESC
+`
 
 func GetPostsBySubreaditName(subreaditName string) ([]Post, error) {
 	posts := []Post{}
-	if err := db.Connection.Where("name = ?", subreaditName).Joins("Subreadit").Joins("User").Order("created_at DESC").Find(&posts).Error; err != nil {
+	err := db.Connection.Select(&posts, getPostsBySubreaditName, subreaditName)
+	if err != nil {
 		return posts, errors.New("could not get posts")
 	}
 	return posts, nil
 }
 
-func FindPostById(id uint) (Post, error) {
+const findPostById = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM posts
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE posts.id = $1 LIMIT 1
+`
+
+func FindPostById(id int64) (Post, error) {
 	post := Post{}
-	if err := db.Connection.Joins("User").Joins("Subreadit").Unscoped().Where("posts.id = ?", id).First(&post).Error; err != nil {
+	err := db.Connection.Get(&post, findPostById, id)
+	if err != nil {
 		return post, errors.New("post does not exist")
 	}
 	return post, nil
 }
 
-func CreateUserReadPost(userReadPost *UserReadPost) error {
-	if err := db.Connection.Where("post_id = ? AND user_id = ?", userReadPost.PostID, userReadPost.UserID).FirstOrCreate(&userReadPost).Error; err != nil {
+const createUserReadPost = `
+INSERT INTO user_read_posts (
+    user_id,
+    post_id
+) 
+VALUES (
+    $1, $2
+)
+`
+
+func CreateUserReadPost(userId int64, postId int64) error {
+	if _, err := GetUserReadPost(userId, postId); err == nil {
+		if err := updateUserReadPostReadAt(userId, postId); err != nil {
+			return errors.New("post read by user could not be created")
+		}
+		return nil
+	}
+	if _, err := db.Connection.Exec(createUserReadPost, userId, postId); err != nil {
 		return errors.New("post read by user could not be created")
 	}
 	return nil
 }
 
-func GetUserReadPost(userId uint, postId uint) (UserReadPost, error) {
+const updateUserReadPostReadAtQuery = `
+UPDATE user_read_posts
+SET updated_at = NOW()
+WHERE post_id = $1 AND user_id = $2
+`
+
+func updateUserReadPostReadAt(userId int64, postId int64) error {
+	if _, err := db.Connection.Exec(updateUserReadPostReadAtQuery, postId, userId); err != nil {
+		return errors.New("could not update UserReadPost read_at")
+	}
+	return nil
+}
+
+const getUserReadPost = `
+SELECT created_at, updated_at, deleted_at, user_id, post_id, read_at
+FROM user_read_posts
+WHERE post_id = $1 AND user_id = $2 LIMIT 1
+`
+
+func GetUserReadPost(userId int64, postId int64) (UserReadPost, error) {
 	userReadPost := UserReadPost{}
-	if err := db.Connection.Where("post_id = ? AND user_id = ?", postId, userId).First(&userReadPost).Error; err != nil {
+	if err := db.Connection.Get(&userReadPost, getUserReadPost, postId, userId); err != nil {
 		return userReadPost, errors.New("post was not read by user")
 	}
 	return userReadPost, nil
 }
 
-func DeletePost(postId uint, userId uint) error {
-	if err := db.Connection.Where("id = ? AND user_id = ?", postId, userId).Delete(&Post{}).Error; err != nil {
+const deletePost = `
+UPDATE posts
+SET deleted_at = NOW()
+WHERE id = $1 AND user_id = $2
+`
+
+func DeletePost(postId int64, userId int64) error {
+	if _, err := db.Connection.Exec(deletePost, postId, userId); err != nil {
+		println(err.Error())
 		return errors.New("post could not be deleted")
 	}
 	return nil

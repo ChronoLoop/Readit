@@ -12,12 +12,6 @@ import (
 	"github.com/ikevinws/readit/models"
 )
 
-type CreateSubreaditPostRequestBody struct {
-	Title         string `json:"title"`
-	Text          string `json:"text"`
-	SubreaditName string `json:"subreaditName"`
-}
-
 func createResponsePost(post *models.Post) models.PostSerializer {
 	subreaditSerialized := CreateResponseSubreadit(&post.Subreadit)
 	postSerialized := models.PostSerializer{
@@ -47,9 +41,9 @@ func createResponsePost(post *models.Post) models.PostSerializer {
 	return postSerialized
 }
 
-func createResponsePostWithUser(post *models.Post, userId int) models.PostSerializer {
+func createResponsePostWithUser(post *models.Post, userId int64) models.PostSerializer {
 	postResponse := createResponsePost(post)
-	postVote, err := models.FindPostVoteById(postResponse.ID, uint(userId))
+	postVote, err := models.FindPostVoteById(postResponse.ID, userId)
 	if err == nil {
 		postResponse.UserVote = &models.UserVoteSerializer{
 			UserID: postVote.UserID,
@@ -69,10 +63,10 @@ func createResponsePosts(posts *[]models.Post) []models.PostSerializer {
 	return postsResponse
 }
 
-func createResponsePostsWithUser(posts *[]models.Post, userId int) []models.PostSerializer {
+func createResponsePostsWithUser(posts *[]models.Post, userId int64) []models.PostSerializer {
 	postsResponse := createResponsePosts(posts)
 	for i, postResponse := range postsResponse {
-		postVote, err := models.FindPostVoteById(postResponse.ID, uint(userId))
+		postVote, err := models.FindPostVoteById(postResponse.ID, userId)
 		if err == nil {
 			postsResponse[i].UserVote = &models.UserVoteSerializer{
 				UserID: postVote.UserID,
@@ -84,7 +78,12 @@ func createResponsePostsWithUser(posts *[]models.Post, userId int) []models.Post
 }
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
-	var postRequestBody CreateSubreaditPostRequestBody
+	type request struct {
+		Title         string `json:"title"`
+		Text          string `json:"text"`
+		SubreaditName string `json:"subreaditName"`
+	}
+	var postRequestBody request
 	if err := json.NewDecoder(r.Body).Decode(&postRequestBody); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -106,7 +105,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	post := models.Post{
 		UserID:      issuer,
 		Title:       postRequestBody.Title,
-		SubreaditID: int(subreadit.ID),
+		SubreaditID: subreadit.ID,
 		Text:        postRequestBody.Text,
 	}
 
@@ -116,7 +115,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreatePost(&post); err != nil {
+	if err := models.CreatePost(post.UserID, post.SubreaditID, post.Title, post.Text); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -173,13 +172,13 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Could not get post")
 		return
 	}
 
-	post, err := models.FindPostById(uint(postId))
+	post, err := models.FindPostById(postId)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -212,13 +211,13 @@ func CreateUserReadPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "could not get post")
 		return
 	}
 
-	post, err := models.FindPostById(uint(postId))
+	post, err := models.FindPostById(postId)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -231,8 +230,8 @@ func CreateUserReadPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userReadPost := models.UserReadPost{
-		UserID: int(user.ID),
-		PostID: int(post.ID),
+		UserID: user.ID,
+		PostID: post.ID,
 	}
 
 	validate := validator.New()
@@ -241,7 +240,7 @@ func CreateUserReadPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateUserReadPost(&userReadPost); err != nil {
+	if err := models.CreateUserReadPost(userReadPost.UserID, userReadPost.PostID); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -269,13 +268,13 @@ func GetUserReadPost(w http.ResponseWriter, r *http.Request) {
 		common.RespondJSON(w, http.StatusBadRequest, "could not get post")
 		return
 	}
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "could not get post")
 		return
 	}
 
-	userReadPost, err := models.GetUserReadPost(uint(issuer), uint(postId))
+	userReadPost, err := models.GetUserReadPost(issuer, postId)
 
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
@@ -299,18 +298,23 @@ func DeleteUserPost(w http.ResponseWriter, r *http.Request) {
 		common.RespondJSON(w, http.StatusBadRequest, "could not get post")
 		return
 	}
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "could not get post")
 		return
 	}
 
-	if _, err := models.FindPostById(uint(postId)); err != nil {
+	post, err := models.FindPostById(postId)
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	if post.UserID != issuer {
+		common.RespondError(w, http.StatusBadRequest, "post belongs to another user")
+		return
+	}
 
-	if err := models.DeletePost(uint(postId), uint(issuer)); err != nil {
+	if err := models.DeletePost(postId, issuer); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 type CommentResponse struct {
-	CommentId uint `json:"commentId"`
+	CommentId int64 `json:"commentId"`
 }
 
 func CreateComment(w http.ResponseWriter, r *http.Request) {
@@ -37,13 +37,13 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
-
-	if err := models.CreatePostComment(&comment); err != nil {
+	newComment, err := models.CreatePostComment(comment.UserID, comment.PostID, comment.Text, comment.ParentID)
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	commentResponse := CommentResponse{CommentId: comment.ID}
+	commentResponse := CommentResponse{CommentId: newComment.ID}
 
 	common.RespondJSON(w, http.StatusCreated, commentResponse)
 }
@@ -57,13 +57,13 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postId, postIdErr := strconv.Atoi(postIdParam)
+	postId, postIdErr := strconv.ParseInt(postIdParam, 10, 64)
 	if postIdErr != nil {
 		common.RespondError(w, http.StatusBadRequest, "Could not get comments")
 		return
 	}
 
-	comments, commentsErr := models.GetPostComments(uint(postId))
+	comments, commentsErr := models.GetPostComments(postId)
 	if commentsErr != nil {
 		common.RespondError(w, http.StatusBadRequest, commentsErr.Error())
 		return
@@ -96,9 +96,9 @@ func createResponsePostComment(postComment *models.PostComment) models.PostComme
 	return postCommentSerialized
 }
 
-func createResponseCommentWithUser(postComment *models.PostComment, userId int) models.PostCommentSerializer {
+func createResponseCommentWithUser(postComment *models.PostComment, userId int64) models.PostCommentSerializer {
 	postResponse := createResponsePostComment(postComment)
-	postVote, err := models.FindPostCommentVoteById(postResponse.ID, uint(userId))
+	postVote, err := models.FindPostCommentVoteById(postResponse.ID, userId)
 	if err == nil {
 		postResponse.UserVote = &models.UserVoteSerializer{
 			UserID: postVote.UserID,
@@ -108,7 +108,7 @@ func createResponseCommentWithUser(postComment *models.PostComment, userId int) 
 	return postResponse
 }
 
-func createResponseCommentsWithUser(postComments *[]models.PostComment, userId int) []models.PostCommentSerializer {
+func createResponseCommentsWithUser(postComments *[]models.PostComment, userId int64) []models.PostCommentSerializer {
 	postCommentsResponse := []models.PostCommentSerializer{}
 	for _, postComment := range *postComments {
 		postCommentSerialized := createResponseCommentWithUser(&postComment, userId)

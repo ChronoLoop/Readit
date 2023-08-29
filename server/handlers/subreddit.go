@@ -38,19 +38,19 @@ func createResponseSubreaditUsers(subreaditUsers *[]models.SubreaditUser) []mode
 }
 
 func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
-	var subreadit models.Subreadit
-	if err := json.NewDecoder(r.Body).Decode(&subreadit); err != nil {
+	var body models.Subreadit
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if _, err := models.FindSubreaditByName(subreadit.Name); err == nil {
+	if _, err := models.FindSubreaditByName(body.Name); err == nil {
 		common.RespondError(w, http.StatusBadRequest, "Subreadit already exists")
 		return
 	}
 
 	validate := validator.New()
-	if err := validate.Struct(&subreadit); err != nil {
+	if err := validate.Struct(&body); err != nil {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
@@ -61,18 +61,13 @@ func CreateSubreadit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateSubreadit(&subreadit); err != nil {
+	newSubreadit, err := models.CreateSubreadit(body.Name)
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	subreaditUser := models.SubreaditUser{
-		UserID:      uint(issuer),
-		SubreaditID: subreadit.ID,
-		Role:        models.ModeratorRole.String(),
-	}
-
-	if err := models.JoinSubreadit(&subreaditUser); err != nil {
+	if err := models.JoinSubreadit(newSubreadit.ID, issuer, models.ModeratorRole.String()); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -127,13 +122,7 @@ func JoinSubreadit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreaditUser := models.SubreaditUser{
-		UserID:      uint(issuer),
-		SubreaditID: subreadit.ID,
-		Role:        models.UserRole.String(),
-	}
-
-	if err := models.JoinSubreadit(&subreaditUser); err != nil {
+	if err := models.JoinSubreadit(subreadit.ID, issuer, models.UserRole.String()); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -165,12 +154,12 @@ func LeaveSubreadit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := models.FindSubreaditUser(subreadit.ID, uint(issuer)); err != nil {
+	if _, err := models.FindSubreaditUser(subreadit.ID, issuer); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := models.LeaveSubreadit(subreadit.ID, uint(issuer)); err != nil {
+	if err := models.LeaveSubreadit(subreadit.ID, issuer); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -213,7 +202,7 @@ func GetUserSubreadits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userSubreadits, err := models.GetUserSubreadits(uint(issuer))
+	userSubreadits, err := models.GetUserSubreadits(issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -237,7 +226,7 @@ func GetSubreaditMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subreaditUser, err := models.FindSubreaditUser(subreadit.ID, uint(issuer))
+	subreaditUser, err := models.FindSubreaditUser(subreadit.ID, issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusNotFound, err.Error())
 		return

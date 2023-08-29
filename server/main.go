@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -12,29 +11,18 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
+	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/db"
-	"github.com/ikevinws/readit/models"
 	"github.com/ikevinws/readit/routes"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	ex, err := os.Executable()
 
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-
-	//air runs executable in tmp
-	if path.Base(exPath) == "tmp" {
-		exPath = filepath.Join(exPath, "../")
-	}
+	exPath := common.GetExePath()
 	godotenv.Load(filepath.Join(exPath, "../.env"))
 
 	db.Initialize()
-	// db.Connection.Migrator().DropTable(&models.User{}, &models.Subreadit{}, &models.Post{}, &models.PostVote{}, &models.PostCommentVote{}, &models.PostComment{}, &models.SubreaditUser{})
-	db.Connection.AutoMigrate(&models.User{}, &models.Subreadit{}, &models.Post{}, &models.PostVote{}, &models.PostCommentVote{}, &models.PostComment{}, &models.SubreaditUser{}, &models.UserReadPost{})
 
 	r := chi.NewRouter()
 

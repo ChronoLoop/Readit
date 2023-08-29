@@ -20,15 +20,15 @@ import (
 const refreshTokenCookieName string = "refresh_token"
 const refreshTokenExpirationTimeDuration time.Duration = time.Hour * 24 * 7
 
-func createJwtToken(secretKey string, issuer int, expirationTime time.Time) (string, error) {
+func createJwtToken(secretKey string, issuer int64, expirationTime time.Time) (string, error) {
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    strconv.Itoa(issuer),
+		Issuer:    strconv.FormatInt(issuer, 10),
 		ExpiresAt: jwt.NewNumericDate(expirationTime),
 	})
 	return tokenClaims.SignedString([]byte(secretKey))
 }
 
-func generateAuthTokens(issuer int) (map[string]string, error) {
+func generateAuthTokens(issuer int64) (map[string]string, error) {
 	secretKey := os.Getenv("JWT_SECRET")
 
 	accessToken, err := createJwtToken(secretKey, issuer, time.Now().Add(time.Minute*20))
@@ -45,7 +45,7 @@ func generateAuthTokens(issuer int) (map[string]string, error) {
 	return map[string]string{"refreshToken": refreshToken, "accessToken": accessToken}, nil
 }
 
-func sendTokens(w http.ResponseWriter, issuer int, user *models.User) {
+func sendTokens(w http.ResponseWriter, issuer int64, user *models.User) {
 	authTokens, err := generateAuthTokens(issuer)
 	if err != nil {
 		common.RespondError(w, http.StatusInternalServerError, "Could not login")
@@ -92,7 +92,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	password, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	user.Password = string(password)
 
-	if err := models.CreateUser(&user); err != nil {
+	if err := models.CreateUser(user.Username, user.Password); err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -119,7 +119,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendTokens(w, int(dbUser.ID), &dbUser)
+	sendTokens(w, dbUser.ID, &dbUser)
 }
 
 func SignOut(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +155,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	claims := refreshToken.Claims.(*jwt.RegisteredClaims)
-	issuer, err := strconv.Atoi(claims.Issuer)
+	issuer, err := strconv.ParseInt(claims.Issuer, 10, 64)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -201,7 +201,7 @@ func CreateResponseUser(user *models.User) models.UserSerializer {
 	}
 }
 
-func GetAccessTokenIssuer(r *http.Request) (int, error) {
+func GetAccessTokenIssuer(r *http.Request) (int64, error) {
 	authHeader := r.Header.Get("Authorization")
 
 	splitAuthHeader := strings.Split(authHeader, "Bearer ")
@@ -220,5 +220,5 @@ func GetAccessTokenIssuer(r *http.Request) (int, error) {
 	}
 
 	claims := token.Claims.(*jwt.RegisteredClaims)
-	return strconv.Atoi(claims.Issuer)
+	return strconv.ParseInt(claims.Issuer, 10, 64)
 }
