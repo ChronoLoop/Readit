@@ -30,13 +30,13 @@ func createResponsePost(post *models.Post) models.PostSerializer {
 	}
 	if !post.DeletedAt.Time.IsZero() {
 		postSerialized.Title = "[deleted]"
-		postSerialized.Text = "[deleted]"
+		postSerialized.Text = []string{"[deleted]"}
 		postSerialized.User = nil
 	} else {
 		userSerialized := CreateResponseUser(&post.User)
 		postSerialized.User = &userSerialized
 		postSerialized.Title = post.Title
-		postSerialized.Text = post.Text
+		postSerialized.Text = common.SplitTextByNewLine(post.Text)
 	}
 	return postSerialized
 }

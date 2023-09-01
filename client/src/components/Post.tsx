@@ -147,6 +147,7 @@ interface PostProps {
     closeModal?: () => void;
     openModalToComments?: () => void;
     scrollToComments?: boolean;
+    restrictContentHeight?: boolean;
 }
 
 const Post = ({
@@ -159,6 +160,7 @@ const Post = ({
     closeModal,
     openModalToComments,
     scrollToComments,
+    restrictContentHeight = false,
 }: PostProps) => {
     useEffect(() => {
         if (scrollToComments) {
@@ -247,11 +249,25 @@ const Post = ({
                                 <h3 className={styles.title}>
                                     {postData.title}
                                 </h3>
-                                {postData.text && (
-                                    <p className={styles.text}>
-                                        {postData.text}
-                                    </p>
-                                )}
+                                <div
+                                    className={cx(styles.content_body_text, {
+                                        [styles.content_body_text_restrict_height]:
+                                            restrictContentHeight,
+                                    })}
+                                >
+                                    {postData.text &&
+                                        postData.text.map((text, idx) => {
+                                            if (!text) return null;
+                                            return (
+                                                <p
+                                                    className={styles.text}
+                                                    key={idx}
+                                                >
+                                                    {text}
+                                                </p>
+                                            );
+                                        })}
+                                </div>
                             </div>
                             <div
                                 className={styles.options}

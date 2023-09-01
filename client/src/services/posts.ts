@@ -25,7 +25,7 @@ export interface PostData {
     id: number;
     title: string;
     totalVoteValue: number;
-    text: string;
+    text: string[];
     createAt: string;
     user?: {
         id: number;

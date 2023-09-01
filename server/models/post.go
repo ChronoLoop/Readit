@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/db"
 )
 
@@ -25,7 +26,7 @@ type PostSerializer struct {
 	ID               int64               `json:"id"`
 	Title            string              `json:"title"`
 	TotalVoteValue   int64               `json:"totalVoteValue"`
-	Text             string              `json:"text"`
+	Text             []string            `json:"text"`
 	CreatedAt        time.Time           `json:"createAt"`
 	UpdatedAt        time.Time           `json:"updatedAt"`
 	User             *UserSerializer     `json:"user,omitempty"`
@@ -61,7 +62,8 @@ INSERT INTO posts (
 `
 
 func CreatePost(user_id int64, subreadit_id int64, title string, text string) error {
-	if _, err := db.Connection.Exec(createPost, user_id, subreadit_id, title, text); err != nil {
+	cleanedText := common.ProcessTextHandler(text)
+	if _, err := db.Connection.Exec(createPost, user_id, subreadit_id, title, cleanedText); err != nil {
 		return errors.New("post could not be created")
 	}
 	return nil

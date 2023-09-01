@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/db"
 )
 
@@ -142,7 +143,7 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			ID:               post.ID.Int64,
 			TotalVoteValue:   post.TotalVoteValue.Int64,
 			NumberOfComments: post.NumberOfComments.Int64,
-			Text:             post.Text.String,
+			Text:             common.SplitTextByNewLine(post.Text.String),
 			Title:            post.Title.String,
 			CreatedAt:        post.CreatedAt.Time,
 			UpdatedAt:        post.UpdatedAt.Time,
@@ -176,7 +177,7 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			continue
 		} else if post.DeletedAt.Valid {
 			postSerialize.Title = "[deleted]"
-			postSerialize.Text = "[deleted]"
+			postSerialize.Text = []string{"[deleted]"}
 			postSerialize.User = nil
 		}
 
