@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/ikevinws/readit/common"
 	"github.com/ikevinws/readit/middleware"
@@ -78,15 +79,51 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 	common.RespondJSON(w, http.StatusOK, commentsResponse)
 }
 
+func DeleteUserComment(w http.ResponseWriter, r *http.Request) {
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	commentIdParam := chi.URLParam(r, "id")
+	if commentIdParam == "" {
+		common.RespondJSON(w, http.StatusBadRequest, "could not get comment")
+		return
+	}
+	commentId, commentIdErr := strconv.ParseInt(commentIdParam, 10, 64)
+	if commentIdErr != nil {
+		common.RespondError(w, http.StatusBadRequest, "could not get comment")
+		return
+	}
+
+	if _, err := models.FindPostCommentById(commentId); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := models.DeletePostComment(commentId, issuer); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func createResponsePostComment(postComment *models.PostComment) models.PostCommentSerializer {
 	userSerialized := CreateResponseUser(&postComment.User)
 	postCommentSerialized := models.PostCommentSerializer{
 		ID:        postComment.ID,
 		Text:      postComment.Text,
 		CreatedAt: postComment.CreatedAt,
-		User:      userSerialized,
+		User:      &userSerialized,
 		ParentID:  postComment.ParentID,
 		PostID:    postComment.PostID,
+	}
+	if postComment.DeletedAt.Valid {
+		postCommentSerialized.Text = "[deleted]"
+		postCommentSerialized.User = nil
 	}
 
 	totalVoteValue, err := models.GetPostCommentTotalVoteValue(postComment.ID)

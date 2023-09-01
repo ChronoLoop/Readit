@@ -4,6 +4,7 @@ import {
     PostComments,
     PostCommentSchema,
     useCreateSubreaditPostComment,
+    useDeleteUserComment,
     useGetPostCommentVote,
     useSendPostCommentVote,
     VoteResponse,
@@ -12,12 +13,13 @@ import styles from './CommentList.module.scss';
 import { BsArrowsAngleExpand } from 'react-icons/bs';
 import Button from './Button';
 import VoteControls from './VoteControls';
-import { FaCommentAlt, FaRegCommentAlt } from 'react-icons/fa';
+import { FaCommentAlt, FaRegCommentAlt, FaRegTrashAlt } from 'react-icons/fa';
 import CommentTextArea from './CommentTextArea';
 import useUserStore from 'store/user';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ContentError from './ContentError';
+import { DeleteModal } from './modals';
 
 interface CommentReplyInputProps {
     postId: number;
@@ -101,6 +103,53 @@ export const createCommentTagId = (id: number) => {
     return `post-comment-${id}`;
 };
 
+type CommentDeleteButtonProps = {
+    postId: number;
+    commendId: number;
+    commentUserId: number;
+    username: string;
+};
+
+const CommentDeleteButton = ({
+    postId,
+    commendId,
+    commentUserId,
+    username,
+}: CommentDeleteButtonProps) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const userId = useUserStore((s) => s.user?.id);
+    const { mutate, isLoading } = useDeleteUserComment();
+
+    if (!commentUserId || userId !== commentUserId) return null;
+
+    return (
+        <>
+            <Button
+                className={styles.comment_interactions_button}
+                disabled={isLoading}
+                onClick={() => {
+                    setIsModalOpen(true);
+                }}
+            >
+                <i className={styles.comment_interactions_button_icon}>
+                    <FaRegTrashAlt size={'1rem'} />
+                </i>
+                delete
+            </Button>
+            {isModalOpen && (
+                <DeleteModal
+                    closeModal={() => setIsModalOpen(false)}
+                    itemToDelete={'comment'}
+                    onDelete={() => {
+                        mutate({ postId, commendId, username });
+                    }}
+                    showSpinner={isLoading}
+                />
+            )}
+        </>
+    );
+};
+
 interface CommentProps {
     comment: PostComments[number];
     comments: PostComments;
@@ -140,9 +189,11 @@ const Comment = ({ comment, comments }: CommentProps) => {
                     />
                     <div className={styles.comment}>
                         <div className={styles.comment_content}>
-                            <div className={styles.comment_username}>
-                                {comment.user.username}
-                            </div>
+                            {comment.user && (
+                                <div className={styles.comment_username}>
+                                    {comment.user.username}
+                                </div>
+                            )}
                             <div className={styles.comment_text}>
                                 {comment.text}
                             </div>
@@ -167,6 +218,14 @@ const Comment = ({ comment, comments }: CommentProps) => {
                                 </i>
                                 reply
                             </Button>
+                            {comment.user && (
+                                <CommentDeleteButton
+                                    commentUserId={comment.user.id}
+                                    username={comment.user.username}
+                                    commendId={comment.id}
+                                    postId={comment.postId}
+                                />
+                            )}
                         </div>
                     </div>
                     {(isReplyInputOpen || !!currentCommentReplies) && (

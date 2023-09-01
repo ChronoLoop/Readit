@@ -1,6 +1,7 @@
 import ModalFrame from 'components/ModalFrame';
 import Post from 'components/Post';
 import { useGetSubreaditPost } from 'services';
+import { usePostModalStore } from 'store/modal';
 import styles from './SubreaditPostModal.module.scss';
 
 interface SubreaditPostCommentsModalProps {
@@ -37,6 +38,7 @@ const SubreaditPostCommentsModal = ({
                         postData={data}
                         showCommentInput
                         scrollToComments={scrollToComments}
+                        closeModal={closeModal}
                     />
                 )}
             </div>
@@ -44,4 +46,20 @@ const SubreaditPostCommentsModal = ({
     );
 };
 
-export default SubreaditPostCommentsModal;
+const SubreaditPostCommentsModalWrapper = () => {
+    const postId = usePostModalStore((s) => s.postModalPostId);
+    const closeModal = usePostModalStore((s) => s.closePostModal);
+    const prevLocation = usePostModalStore((s) => s.prevLocation);
+    const scrollToComments = usePostModalStore((s) => s.scrollToComments);
+    if (!postId) return null;
+    return (
+        <SubreaditPostCommentsModal
+            postId={postId}
+            closeModal={closeModal}
+            prevLocation={prevLocation}
+            scrollToComments={scrollToComments}
+        />
+    );
+};
+
+export default SubreaditPostCommentsModalWrapper;

@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import SubreaditPlaceholderIcon from 'icons/SubreaditPlaceholderIcon';
 import { useGetUserSubreadits } from 'services';
 import Dropdown from 'components/Dropdown';
-import useModalStore from 'store/modal';
+import { useCreateSubreaditModalStore } from 'store/modal';
 
 interface ToggleDropdownProps {
     toggleDropdown: () => void;
@@ -51,7 +51,7 @@ const NavigationFeeds = ({ toggleDropdown }: ToggleDropdownProps) => {
 };
 
 const CreateSubreaditButton = ({ toggleDropdown }: ToggleDropdownProps) => {
-    const { toggleShowCreateSubreaditModal } = useModalStore();
+    const { toggleShowCreateSubreaditModal } = useCreateSubreaditModalStore();
 
     return (
         <>

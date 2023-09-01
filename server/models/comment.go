@@ -26,7 +26,7 @@ type PostCommentSerializer struct {
 	Text           string              `json:"text"`
 	CreatedAt      time.Time           `json:"createAt"`
 	UpdatedAt      time.Time           `json:"updatedAt"`
-	User           UserSerializer      `json:"user"`
+	User           *UserSerializer     `json:"user,omitempty"`
 	ParentID       *int64              `json:"parentId"`
 	UserVote       *UserVoteSerializer `json:"userVote,omitempty"`
 	PostID         int64               `json:"postId"`
@@ -122,4 +122,17 @@ func GetPostCommentCount(postId int64) (int64, error) {
 		return count.Int64, errors.New("total number of comments could not be obtained")
 	}
 	return count.Int64, nil
+}
+
+const deletePostComment = `
+UPDATE post_comments
+SET deleted_at = NOW()
+WHERE id = $1 AND user_id = $2
+`
+
+func DeletePostComment(id int64, userId int64) error {
+	if _, err := db.Connection.Exec(deletePostComment, id, userId); err != nil {
+		return errors.New("post comment could not be deleted")
+	}
+	return nil
 }
