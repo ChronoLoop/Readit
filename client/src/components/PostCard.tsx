@@ -79,6 +79,7 @@ const PostCard = ({
                             setShowModal(true);
                             setScrollToComments(true);
                         }}
+                        restrictContentHeight
                     />
                 </div>
                 {userComments && userComments.length && (
