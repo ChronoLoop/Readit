@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import cx from 'classnames';
-import SubreaditPostCommentsModal from './modals/SubreaditPostModal';
 import {
     PostComments,
     PostData,
@@ -11,6 +10,7 @@ import Post from './Post';
 import CardWrapper from './CardWrapper';
 
 import styles from './PostCard.module.scss';
+import { usePostModalStore } from 'store/modal';
 
 interface PostCardProps {
     className?: string;
@@ -30,22 +30,15 @@ const PostCard = ({
     hidePostContent = false,
 }: PostCardProps) => {
     const { data } = useCheckUserReadPost(postData.id);
-    const [prevLocation] = useState(window.location.href);
     const { mutate } = useCreateUserReadPost();
+    const setPostModal = usePostModalStore((s) => s.setPostModal);
     const [clicked, setClicked] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [scrollToComments, setScrollToComments] = useState(false);
 
     const userOwnsPost = username === postData.user?.username;
     const canHidePostContent = !!(
         userComments?.length &&
         (hidePostContent || !userOwnsPost)
     );
-
-    const handleCloseModal = () => {
-        setShowModal((prev) => !prev);
-        setScrollToComments(false);
-    };
 
     return (
         <>
@@ -54,13 +47,7 @@ const PostCard = ({
                 onClick={() => {
                     mutate(postData.id);
                     setClicked(true);
-
-                    window.history.replaceState(
-                        null,
-                        '',
-                        `/r/${postData.subreadit.name}/comments/${postData.id}`
-                    );
-                    setShowModal(true);
+                    setPostModal(postData, false);
                 }}
             >
                 <div
@@ -76,17 +63,19 @@ const PostCard = ({
                             (canHidePostContent && username) || ''
                         }
                         openModalToComments={() => {
-                            setShowModal(true);
-                            setScrollToComments(true);
+                            setPostModal(postData, true);
                         }}
-                        restrictContentHeight
+                        isCard
                     />
                 </div>
                 {userComments && userComments.length && (
                     <div className={cx(styles.comments)}>
                         {userComments.map((comment) => {
                             return (
-                                <div className={cx(styles.comments_item)}>
+                                <div
+                                    className={cx(styles.comments_item)}
+                                    key={comment.id}
+                                >
                                     <div
                                         className={cx(
                                             styles.comments_item_container
@@ -97,13 +86,15 @@ const PostCard = ({
                                                 styles.comments_item_content
                                             )}
                                         >
-                                            <div
-                                                className={
-                                                    styles.comments_item_user
-                                                }
-                                            >
-                                                {comment.user.username}
-                                            </div>
+                                            {comment.user && (
+                                                <div
+                                                    className={
+                                                        styles.comments_item_user
+                                                    }
+                                                >
+                                                    {comment.user.username}
+                                                </div>
+                                            )}
                                             <div>{comment.text}</div>
                                         </div>
                                     </div>
@@ -113,16 +104,6 @@ const PostCard = ({
                     </div>
                 )}
             </CardWrapper>
-            {showModal && (
-                <SubreaditPostCommentsModal
-                    prevLocation={prevLocation}
-                    postId={postData.id}
-                    scrollToComments={scrollToComments}
-                    closeModal={() => {
-                        handleCloseModal();
-                    }}
-                />
-            )}
         </>
     );
 };

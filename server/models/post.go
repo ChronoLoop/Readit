@@ -286,7 +286,6 @@ WHERE id = $1 AND user_id = $2
 
 func DeletePost(postId int64, userId int64) error {
 	if _, err := db.Connection.Exec(deletePost, postId, userId); err != nil {
-		println(err.Error())
 		return errors.New("post could not be deleted")
 	}
 	return nil

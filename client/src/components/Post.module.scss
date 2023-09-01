@@ -33,11 +33,18 @@
         &_text {
             line-height: 1.5;
             margin-top: 0.8rem;
-            mask-image: linear-gradient(180deg, #000 60%, transparent);
-
             &_restrict_height {
                 overflow: hidden;
                 max-height: 16.5rem;
+            }
+
+            &_bottom_shadow {
+                -webkit-mask-image: linear-gradient(
+                    180deg,
+                    #000 60%,
+                    transparent
+                );
+                mask-image: linear-gradient(180deg, #000 60%, transparent);
             }
         }
     }

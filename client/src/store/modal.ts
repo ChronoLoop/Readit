@@ -2,19 +2,13 @@ import { PostData } from 'services';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-interface ModalStore {
+type CreateSubreaditModalStore = {
     showCreateSubreaditModal: boolean;
     setShowCreateSubreaditModal: (show: boolean) => void;
     toggleShowCreateSubreaditModal: () => void;
+};
 
-    //subreadit post comment
-    closeSubreaditPostModal: () => void;
-    setSubreaditPostModal: (postData: PostData | null) => void;
-    subreaditPostModalPostId: number | null;
-    prevLocation: string;
-}
-
-const modalStore = create<ModalStore>()(
+export const useCreateSubreaditModalStore = create<CreateSubreaditModalStore>()(
     devtools((set) => ({
         showCreateSubreaditModal: false,
         setShowCreateSubreaditModal: (show) =>
@@ -23,40 +17,49 @@ const modalStore = create<ModalStore>()(
             set(({ showCreateSubreaditModal }) => {
                 return { showCreateSubreaditModal: !showCreateSubreaditModal };
             }),
+    }))
+);
 
+type PostModalStore = {
+    closePostModal: () => void;
+    setPostModal: (postData: PostData, scrollToComments: boolean) => void;
+    postModalPostId: number | null;
+    prevLocation: string;
+    scrollToComments: boolean;
+};
+
+export const usePostModalStore = create<PostModalStore>()(
+    devtools((set) => ({
         //subreadit post comment
         prevLocation: '',
-        subreaditPostModalPostId: null,
-        closeSubreaditPostModal: () => {
+        postModalPostId: null,
+        scrollToComments: false,
+        closePostModal: () => {
             set(({ prevLocation }) => {
                 if (prevLocation) {
                     window.history.replaceState(null, '', prevLocation);
                 }
-                return { subreaditPostModalPostId: null, prevLocation: '' };
+                return {
+                    postModalPostId: null,
+                    prevLocation: '',
+                    scrollToComments: false,
+                };
             });
         },
-        setSubreaditPostModal: (postData) => {
-            set(({ prevLocation }) => {
-                if (postData) {
-                    window.history.replaceState(
-                        null,
-                        '',
-                        `/r/${postData.subreadit.name}/comments/${postData.id}`
-                    );
-                    return {
-                        prevLocation: window.location.href,
-                    };
-                }
-                window.history.replaceState(null, '', prevLocation);
+        setPostModal: (postData, scrollToComments) => {
+            set(() => {
+                const prevLocation = window.location.href;
+                window.history.replaceState(
+                    null,
+                    '',
+                    `/r/${postData.subreadit.name}/comments/${postData.id}`
+                );
                 return {
-                    subreaditPostModalPostId: null,
-                    prevLocation: '',
+                    prevLocation: prevLocation,
+                    postModalPostId: postData.id,
+                    scrollToComments,
                 };
             });
         },
     }))
 );
-
-const useModalStore = modalStore;
-
-export default useModalStore;

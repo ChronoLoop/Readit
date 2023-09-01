@@ -29,6 +29,7 @@ type OverviewPost struct {
 type OverviewPostComment struct {
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+	DeletedAt      sql.NullTime
 	ID             sql.NullInt64
 	TotalVoteValue sql.NullInt64
 	Text           sql.NullString
@@ -63,7 +64,9 @@ posts.title, posts.user_id, posts.subreadit_id, posts.text,
 (SELECT count(*) FROM post_comments WHERE post_id = posts.id AND post_comments.deleted_at IS NULL) as numberOfComments,
 
 post_comment_users.username as post_comment_username,
-post_comments.id, post_comments.created_at, post_comments.updated_at, post_comments.post_id, post_comments.user_id, post_comments.text, post_comments.parent_id,
+post_comments.id, 
+post_comments.created_at, post_comments.updated_at, post_comments.deleted_at,
+post_comments.post_id, post_comments.user_id, post_comments.text, post_comments.parent_id,
 (SELECT sum(value) FROM post_comment_votes WHERE post_comment_id = post_comments.id) as commentTotalVoteValue,
 
 post_votes.user_id,
@@ -92,7 +95,7 @@ ON post_votes.post_id = posts.id AND post_votes.user_id = $1
 LEFT JOIN post_comment_votes
 ON post_comment_votes.post_comment_id = post_comments.id AND post_comment_votes.user_id = $1
 
-where (post_comments.user_id = $1 or posts.user_id = $1)
+WHERE (post_comments.user_id = $1 AND post_comments.deleted_at IS NULL) or posts.user_id = $1
 ORDER BY posts.created_at DESC, post_comments.created_at DESC
 `
 
@@ -127,7 +130,9 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			&post.NumberOfComments,
 
 			&postCommentUser.Username,
-			&postComment.ID, &postComment.CreatedAt, &postComment.UpdatedAt, &postComment.PostID, &postCommentUser.ID, &postComment.Text, &postComment.ParentID,
+			&postComment.ID,
+			&postComment.CreatedAt, &postComment.UpdatedAt, &postComment.DeletedAt,
+			&postComment.PostID, &postCommentUser.ID, &postComment.Text, &postComment.ParentID,
 			&postComment.TotalVoteValue,
 
 			&postUserVote.UserID,
@@ -160,10 +165,6 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			TotalVoteValue: postComment.TotalVoteValue.Int64,
 			PostID:         postComment.PostID.Int64,
 			ParentID:       postComment.ParentID,
-			User: UserSerializer{
-				ID:       postCommentUser.ID.Int64,
-				Username: postCommentUser.Username.String,
-			},
 		}
 
 		if postUser.ID.Valid {
@@ -179,6 +180,13 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			postSerialize.Title = "[deleted]"
 			postSerialize.Text = []string{"[deleted]"}
 			postSerialize.User = nil
+		}
+
+		if postCommentUser.ID.Valid {
+			postCommentSerialize.User = &UserSerializer{
+				ID:       postCommentUser.ID.Int64,
+				Username: postCommentUser.Username.String,
+			}
 		}
 
 		if postUserVote.UserID.Valid {
@@ -209,7 +217,7 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			}
 		}
 
-		if postComment.ID.Valid {
+		if postComment.ID.Valid && !postComment.DeletedAt.Valid {
 			for i := range results {
 				if results[i].Post.ID == postCommentSerialize.PostID {
 					results[i].UserComments = append(results[i].UserComments, postCommentSerialize)

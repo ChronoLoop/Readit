@@ -13,7 +13,11 @@ const UserPosts = () => {
     return (
         <PostsList.Container>
             {data.map((userOverviewPostWithComments) => {
-                if (!userOverviewPostWithComments.post.user) return null;
+                if (
+                    !userOverviewPostWithComments.post.user ||
+                    userOverviewPostWithComments.post.user.username !== username
+                )
+                    return null;
                 return (
                     <PostCard
                         key={userOverviewPostWithComments.post.id}

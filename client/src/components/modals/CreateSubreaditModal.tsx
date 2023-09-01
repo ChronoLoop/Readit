@@ -5,7 +5,7 @@ import { z } from 'zod';
 import styles from './CreateSubreaditModal.module.scss';
 import { Input, Button, ModalFrame, ModalFormWrapper } from 'components';
 import { useNavigate } from 'react-router-dom';
-import useModalStore from 'store/modal';
+import { useCreateSubreaditModalStore } from 'store/modal';
 
 const SubreaditSchema = z.object({
     name: z
@@ -20,7 +20,7 @@ type SubreaditFormType = z.infer<typeof SubreaditSchema>;
 
 const CreateSubreaditModal = () => {
     const { showCreateSubreaditModal, toggleShowCreateSubreaditModal } =
-        useModalStore();
+        useCreateSubreaditModalStore();
     const navigate = useNavigate();
     const {
         register,

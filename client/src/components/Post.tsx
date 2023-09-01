@@ -119,6 +119,7 @@ const PostDeleteButton = ({
                 onClick={() => {
                     setIsModalOpen(true);
                 }}
+                disabled={isLoading}
             >
                 <FaRegTrashAlt size={'1rem'} />
                 Delete
@@ -147,7 +148,7 @@ interface PostProps {
     closeModal?: () => void;
     openModalToComments?: () => void;
     scrollToComments?: boolean;
-    restrictContentHeight?: boolean;
+    isCard?: boolean;
 }
 
 const Post = ({
@@ -160,7 +161,7 @@ const Post = ({
     closeModal,
     openModalToComments,
     scrollToComments,
-    restrictContentHeight = false,
+    isCard = false,
 }: PostProps) => {
     useEffect(() => {
         if (scrollToComments) {
@@ -193,6 +194,7 @@ const Post = ({
                                     to={`/u/${commentedOnUsername}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        closeModal?.();
                                     }}
                                 >
                                     {commentedOnUsername}
@@ -216,6 +218,7 @@ const Post = ({
                                 to={`/r/${postData.subreadit.name}`}
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    closeModal?.();
                                 }}
                             >
                                 {'r/' + postData.subreadit.name}
@@ -232,6 +235,7 @@ const Post = ({
                                     to={`/u/${postData.user.username}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
+                                        closeModal?.();
                                     }}
                                 >
                                     u/{postData.user.username}
@@ -250,10 +254,13 @@ const Post = ({
                                     {postData.title}
                                 </h3>
                                 <div
-                                    className={cx(styles.content_body_text, {
-                                        [styles.content_body_text_restrict_height]:
-                                            restrictContentHeight,
-                                    })}
+                                    className={cx(
+                                        styles.content_body_text,
+                                        isCard && [
+                                            styles.content_body_text_restrict_height,
+                                            styles.content_body_text_bottom_shadow,
+                                        ]
+                                    )}
                                 >
                                     {postData.text &&
                                         postData.text.map((text, idx) => {
