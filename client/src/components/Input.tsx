@@ -40,6 +40,7 @@ const InputPasswordEye = ({
                 onClick={toggleShowPassword}
                 className={styles.password_icon_button}
                 type="button"
+                tabIndex={-1}
             >
                 {showPassword ? <FaEye /> : <FaEyeSlash />}
             </Button>

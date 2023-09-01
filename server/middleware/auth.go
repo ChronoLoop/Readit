@@ -46,7 +46,7 @@ func GetRequestAccessTokenClaims(r *http.Request) *jwt.RegisteredClaims {
 	return r.Context().Value(accessTokenClaimsContextKey).(*jwt.RegisteredClaims)
 }
 
-func GetJwtClaimsIssuer(r *http.Request) (int, error) {
+func GetJwtClaimsIssuer(r *http.Request) (int64, error) {
 	AcceessTokenClaims := GetRequestAccessTokenClaims(r)
-	return strconv.Atoi(AcceessTokenClaims.Issuer)
+	return strconv.ParseInt(AcceessTokenClaims.Issuer, 10, 64)
 }

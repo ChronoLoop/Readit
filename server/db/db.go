@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	"github.com/ikevinws/readit/common"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
+	"github.com/pressly/goose/v3"
 )
 
-var Connection *gorm.DB
+var Connection *sqlx.DB
 
 func Initialize() {
 	host, port, username, password, name :=
@@ -26,11 +28,16 @@ func Initialize() {
 		name,
 		port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+
+	db, err := sqlx.Connect("pgx", dsn)
 	if err != nil {
-		log.Fatal("Could not connect database")
+		log.Fatal(err.Error())
+	}
+
+	dir := filepath.Join(common.GetExePath(), "./db/migrations")
+
+	if err = goose.Up(db.DB, dir); err != nil {
+		log.Fatal(err.Error())
 	}
 
 	Connection = db

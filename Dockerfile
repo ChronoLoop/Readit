@@ -24,6 +24,7 @@ RUN mkdir ./client/build/
 RUN mkdir ./server
 
 COPY --from=serverBuilder /app/app ./server
+COPY --from=serverBuilder /app/db/migrations ./server/db/migrations/
 COPY --from=clientBuilder /app/build ./client/build/
 
 EXPOSE 5000
