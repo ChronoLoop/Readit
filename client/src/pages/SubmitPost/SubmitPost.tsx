@@ -95,8 +95,8 @@ const CreatePostPage = () => {
         resolver: zodResolver(SubreaditPostSchema),
     });
     const { mutate, isLoading } = useCreateSubreaditPost({
-        onSuccess: (_, variables) => {
-            navigate(`/r/${variables.subreaditName}`);
+        onSuccess: (response, variables) => {
+            navigate(`/r/${variables.subreaditName}/comments/${response.id}`);
         },
     });
 
@@ -105,44 +105,46 @@ const CreatePostPage = () => {
     };
 
     return (
-        <PageContentWrapper>
-            <div className={styles.container}>
-                <h2>Create a post</h2>
-                <SelectPostSubreaditDropdown
-                    setSubreaditName={(subreaditName) => {
-                        setValue('subreaditName', subreaditName, {
-                            shouldValidate: true,
-                        });
-                    }}
-                />
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Input
-                        placeholder="Title"
-                        variant="transparent"
-                        {...register('title')}
-                        disabled={isLoading}
+        <PageContentWrapper
+            content={
+                <div className={styles.container}>
+                    <h2>Create a post</h2>
+                    <SelectPostSubreaditDropdown
+                        setSubreaditName={(subreaditName) => {
+                            setValue('subreaditName', subreaditName, {
+                                shouldValidate: true,
+                            });
+                        }}
                     />
-                    <TextArea
-                        placeholder="Text (optional)"
-                        variant="transparent"
-                        className={styles.textarea}
-                        {...register('text')}
-                        disabled={isLoading}
-                    />
-                    <hr />
-                    <div className={styles.buttons_container}>
-                        <Button
-                            variant="primary"
-                            type="submit"
-                            disabled={!isValid || isLoading}
-                            showSpinner={isLoading}
-                        >
-                            Post
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </PageContentWrapper>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <Input
+                            placeholder="Title"
+                            variant="transparent"
+                            {...register('title')}
+                            disabled={isLoading}
+                        />
+                        <TextArea
+                            placeholder="Text (optional)"
+                            variant="transparent"
+                            className={styles.textarea}
+                            {...register('text')}
+                            disabled={isLoading}
+                        />
+                        <hr />
+                        <div className={styles.buttons_container}>
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                disabled={!isValid || isLoading}
+                                showSpinner={isLoading}
+                            >
+                                Post
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            }
+        />
     );
 };
 

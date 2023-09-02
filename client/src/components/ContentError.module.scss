@@ -16,6 +16,7 @@
     flex-direction: column;
     text-align: center;
     color: theme-var($color-opac-w-7);
+    height: 100%;
 
     &_sm {
         @include title_message(0.8);

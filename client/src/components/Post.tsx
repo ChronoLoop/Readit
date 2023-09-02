@@ -7,7 +7,7 @@ import {
 } from 'services';
 import styles from './Post.module.scss';
 import { FaRegCommentAlt, FaRegTrashAlt } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useUserStore from 'store/user';
 import {
     Button,
@@ -92,6 +92,7 @@ type PostDeleteButtonProps = {
     postUserId?: number;
     subreaditName: string;
     closeModal?: () => void;
+    onDelete?: () => void;
 };
 
 const PostDeleteButton = ({
@@ -99,13 +100,13 @@ const PostDeleteButton = ({
     postId,
     subreaditName,
     closeModal,
+    onDelete,
 }: PostDeleteButtonProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const userId = useUserStore((s) => s.user?.id);
-    const navigate = useNavigate();
     const { mutate, isLoading } = useDeleteUserPost({
         onSuccess: () => {
-            navigate(`/r/${subreaditName}`);
+            onDelete?.();
             closeModal?.();
         },
     });
@@ -149,6 +150,7 @@ interface PostProps {
     openModalToComments?: () => void;
     scrollToComments?: boolean;
     isCard?: boolean;
+    onDelete?: () => void;
 }
 
 const Post = ({
@@ -162,6 +164,7 @@ const Post = ({
     openModalToComments,
     scrollToComments,
     isCard = false,
+    onDelete,
 }: PostProps) => {
     useEffect(() => {
         if (scrollToComments) {
@@ -299,6 +302,7 @@ const Post = ({
                                     postId={postData.id}
                                     subreaditName={postData.subreadit.name}
                                     closeModal={closeModal}
+                                    onDelete={onDelete}
                                 />
                             </div>
                         </>

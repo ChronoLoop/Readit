@@ -10,8 +10,12 @@
     overflow-wrap: anywhere;
     flex-direction: column;
 
-    &_padding {
+    &_padding_top_right_bottom {
         padding: 0.5rem 0.5rem 0.5rem 0;
+    }
+
+    &_padding {
+        padding: 0.5rem;
     }
 
     &:hover {
@@ -20,10 +24,10 @@
     }
 
     &_no_hover {
-        border: none;
+        border: 1px solid theme-var($post-border);
         &:hover {
+            border: 1px solid theme-var($post-border);
             cursor: auto;
-            border: none;
         }
     }
 }

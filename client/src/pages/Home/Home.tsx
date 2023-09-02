@@ -1,36 +1,46 @@
 import axios from 'axios';
-import { PageContentWrapper, PostsList, ContentError } from 'components';
+import {
+    PageContentWrapper,
+    PostsList,
+    ContentError,
+    RecentUserReadPosts,
+} from 'components';
 import { FaExclamationTriangle } from 'react-icons/fa';
-import { useGetHomePosts } from 'services';
+import { useGetHomePosts, useGetUserRecentReadPosts } from 'services';
 
-const HomePage = () => {
+const HomePageSidebar = () => {
+    const { isLoading, error, data } = useGetUserRecentReadPosts();
+    return (
+        <RecentUserReadPosts isLoading={isLoading} error={error} data={data} />
+    );
+};
+
+const HomePageContent = () => {
     const { data: postsData, isLoading, error } = useGetHomePosts();
 
-    if (isLoading)
-        return (
-            <PageContentWrapper>
-                <PostsList.Loading />
-            </PageContentWrapper>
-        );
+    if (isLoading) return <PostsList.Loading />;
     else if (axios.isAxiosError(error)) {
         return (
-            <PageContentWrapper>
-                <ContentError
-                    icon={<FaExclamationTriangle size={'100%'} />}
-                    title="Posts could not be loaded."
-                    buttonText="Retry"
-                    buttonCallback={() => {
-                        window.location.reload();
-                    }}
-                />
-            </PageContentWrapper>
+            <ContentError
+                icon={<FaExclamationTriangle size={'100%'} />}
+                title="Posts could not be loaded."
+                buttonText="Retry"
+                buttonCallback={() => {
+                    window.location.reload();
+                }}
+            />
         );
     }
 
+    return <PostsList posts={postsData} />;
+};
+
+const HomePage = () => {
     return (
-        <PageContentWrapper>
-            <PostsList posts={postsData} />
-        </PageContentWrapper>
+        <PageContentWrapper
+            content={<HomePageContent />}
+            sidebar={<HomePageSidebar />}
+        />
     );
 };
 

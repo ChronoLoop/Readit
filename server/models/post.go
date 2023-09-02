@@ -58,15 +58,17 @@ INSERT INTO posts (
     text
 ) VALUES (
     $1, $2, $3, $4
-)
+) RETURNING id
 `
 
-func CreatePost(user_id int64, subreadit_id int64, title string, text string) error {
+func CreatePost(userID int64, subreaditID int64, title string, text string) (int64, error) {
 	cleanedText := common.ProcessTextHandler(text)
-	if _, err := db.Connection.Exec(createPost, user_id, subreadit_id, title, cleanedText); err != nil {
-		return errors.New("post could not be created")
+	var postID int64
+
+	if err := db.Connection.Get(&postID, createPost, userID, subreaditID, title, cleanedText); err != nil {
+		return postID, errors.New("post could not be created")
 	}
-	return nil
+	return postID, nil
 }
 
 const getPosts = `
@@ -253,7 +255,7 @@ func CreateUserReadPost(userId int64, postId int64) error {
 
 const updateUserReadPostReadAtQuery = `
 UPDATE user_read_posts
-SET updated_at = NOW()
+SET read_at = NOW()
 WHERE post_id = $1 AND user_id = $2
 `
 
@@ -289,4 +291,90 @@ func DeletePost(postId int64, userId int64) error {
 		return errors.New("post could not be deleted")
 	}
 	return nil
+}
+
+const getUserRecentReadPosts = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM user_read_posts
+LEFT JOIN posts ON posts.id = user_read_posts.post_id
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE posts.deleted_at IS NULL and user_read_posts.user_id = $1
+ORDER BY user_read_posts.read_at DESC
+LIMIT 5
+`
+
+func GetUserRecentReadPosts(userId int64) ([]Post, error) {
+	posts := []Post{}
+	err := db.Connection.Select(&posts, getUserRecentReadPosts, userId)
+
+	if err != nil {
+		return posts, errors.New("could not get posts")
+	}
+
+	return posts, nil
+}
+
+const getUserRecentReadSubreaditPosts = `
+SELECT 
+	users.created_at AS "users.created_at", 
+	users.updated_at AS "users.updated_at", 
+	users.deleted_at AS "users.deleted_at", 
+	users.id AS "users.id", 
+	users.username AS "users.username", 
+	users.password AS "users.password", 
+
+	subreadits.created_at AS "subreadits.created_at", 
+	subreadits.updated_at AS "subreadits.updated_at", 
+	subreadits.deleted_at AS "subreadits.deleted_at", 
+	subreadits.id AS "subreadits.id", 
+	subreadits.name AS "subreadits.name", 
+
+	posts.created_at, 
+	posts.updated_at, 
+	posts.deleted_at, 
+	posts.id, 
+	posts.title, 
+	posts.user_id, 
+	posts.subreadit_id, 
+	posts.text
+FROM user_read_posts
+LEFT JOIN posts ON posts.id = user_read_posts.post_id
+LEFT JOIN users ON posts.user_id = users.id
+LEFT JOIN subreadits ON posts.subreadit_id = subreadits.id
+WHERE posts.deleted_at IS NULL AND user_read_posts.user_id = $1 AND subreadits.name = $2
+ORDER BY user_read_posts.read_at DESC
+LIMIT 5
+`
+
+func GetUserRecentReadSubreaditPosts(userId int64, subreaditName string) ([]Post, error) {
+	posts := []Post{}
+	err := db.Connection.Select(&posts, getUserRecentReadSubreaditPosts, userId, subreaditName)
+
+	if err != nil {
+		return posts, errors.New("could not get posts")
+	}
+
+	return posts, nil
 }

@@ -2,9 +2,6 @@
 @use 'styles/variables';
 
 .container {
-    @media (min-width: variables.$posts-with-sidebar-total-width) {
-        width: 40rem;
-    }
     width: 100%;
     display: flex;
     flex-direction: column;

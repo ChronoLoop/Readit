@@ -8,3 +8,26 @@
     flex-grow: 1;
     flex-basis: 0;
 }
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    &_1 {
+        width: 100%;
+
+        @media (min-width: variables.$posts-with-sidebar-total-width) {
+            width: 40rem;
+        }
+    }
+
+    &_2 {
+        display: none;
+        flex-direction: column;
+        height: 100%;
+        width: variables.$sidebar-width;
+        @media (min-width: variables.$posts-with-sidebar-total-width) {
+            display: flex;
+        }
+    }
+}

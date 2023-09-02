@@ -1,0 +1,45 @@
+@use 'styles/colors' as *;
+
+.card {
+    &_heading {
+        font-weight: 700;
+        font-size: 0.7rem;
+    }
+}
+
+.section {
+    padding: 0.75rem 0;
+    border-bottom: 2px solid theme-var($post-border);
+    line-height: 1.5;
+
+    cursor: pointer;
+
+    &:hover {
+        h3 {
+            text-decoration: underline;
+        }
+    }
+
+    h3 {
+        font-weight: 500;
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+        // max-height: 3rem;
+        // overflow: hidden;
+    }
+
+    .sub_section {
+        font-weight: 400;
+        font-size: 0.75rem;
+        color: theme-var($color-opac-w-7);
+    }
+
+    &:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+}
+
+.line {
+    margin-bottom: 0.4rem;
+}

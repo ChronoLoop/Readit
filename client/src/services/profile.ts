@@ -38,6 +38,7 @@ export const useGetUserProfileOverview = (
         {
             ...options,
             enabled: !!username && !isFetching,
+            retry: 1,
         }
     );
 };

@@ -1,6 +1,6 @@
 import ModalFrame from 'components/ModalFrame';
 import Post from 'components/Post';
-import { useGetSubreaditPost } from 'services';
+import { useGetPostById } from 'services';
 import { usePostModalStore } from 'store/modal';
 import styles from './SubreaditPostModal.module.scss';
 
@@ -17,7 +17,7 @@ const SubreaditPostCommentsModal = ({
     prevLocation,
     scrollToComments,
 }: SubreaditPostCommentsModalProps) => {
-    const { data, isLoading } = useGetSubreaditPost(postId);
+    const { data, isLoading } = useGetPostById(postId);
 
     const handleCloseModal = () => {
         window.history.replaceState(null, '', prevLocation);
