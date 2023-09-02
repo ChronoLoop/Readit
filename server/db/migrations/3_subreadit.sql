@@ -1,7 +1,7 @@
 -- +goose Up
 
 CREATE TABLE IF NOT EXISTS subreadits (
-    id BIGSERIAL UNIQUE PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     name TEXT UNIQUE NOT NULL
 ) INHERITS (time);
 
