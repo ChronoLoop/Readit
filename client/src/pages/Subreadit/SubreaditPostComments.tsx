@@ -1,21 +1,39 @@
 import axios from 'axios';
-import cx from 'classnames';
 import { Post, PageContentWrapper, ContentError } from 'components';
+import LoadingPlaceholder from 'components/LoadingPlaceholder';
 import { FaExclamationTriangle } from 'react-icons/fa';
-import { useParams } from 'react-router-dom';
-import { getServerErrorResponse, useGetSubreaditPost } from 'services';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getServerErrorResponse, useGetPostById } from 'services';
 import styles from './SubreaditPostComments.module.scss';
 import SubreaditTop from './SubreaditTop';
 
+const SubreaditPostCommentsContentLoading = () => {
+    return (
+        <div className={styles.loading}>
+            <LoadingPlaceholder type="line2" />
+            <LoadingPlaceholder type="line5" />
+            <LoadingPlaceholder type="textblock" />
+            <LoadingPlaceholder type="line2" />
+        </div>
+    );
+};
+
 const SubreaditPostCommentsContent = () => {
     const { postId = '' } = useParams();
-    const { data, isLoading, error } = useGetSubreaditPost(parseInt(postId));
+    const { data, isLoading, error } = useGetPostById(parseInt(postId));
 
-    if (isLoading) return <div className={styles.container} />;
+    const navigate = useNavigate();
+
+    if (isLoading)
+        return (
+            <div className={styles.container}>
+                <SubreaditPostCommentsContentLoading />
+            </div>
+        );
     else if (axios.isAxiosError(error)) {
         const errorMessage = getServerErrorResponse(error)?.error;
         return (
-            <div className={cx(styles.container, styles.error)}>
+            <div className={styles.error}>
                 <ContentError
                     icon={<FaExclamationTriangle size={'100%'} />}
                     title={errorMessage}
@@ -24,17 +42,22 @@ const SubreaditPostCommentsContent = () => {
         );
     } else if (!data)
         return (
-            <div className={cx(styles.container, styles.error)}>
-                <ContentError
-                    icon={<FaExclamationTriangle size={'100%'} />}
-                    title="Could not find post"
-                />
-            </div>
+            <ContentError
+                icon={<FaExclamationTriangle size={'100%'} />}
+                title="Could not find post"
+            />
         );
 
     return (
         <div className={styles.container}>
-            <Post showSubreaditLink={false} postData={data} showCommentInput />
+            <Post
+                showSubreaditLink={false}
+                postData={data}
+                showCommentInput
+                onDelete={() => {
+                    navigate(`/r/${data.subreadit.name}`);
+                }}
+            />
         </div>
     );
 };
@@ -43,9 +66,7 @@ const SubreaditPostComments = () => {
     return (
         <>
             <SubreaditTop redirectToSubreadit={true} />
-            <PageContentWrapper>
-                <SubreaditPostCommentsContent />
-            </PageContentWrapper>
+            <PageContentWrapper content={<SubreaditPostCommentsContent />} />
         </>
     );
 };

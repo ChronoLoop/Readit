@@ -5,6 +5,7 @@ import {
     PostData,
     useCheckUserReadPost,
     useCreateUserReadPost,
+    useGetPostById,
 } from 'services';
 import Post from './Post';
 import CardWrapper from './CardWrapper';
@@ -12,99 +13,102 @@ import CardWrapper from './CardWrapper';
 import styles from './PostCard.module.scss';
 import { usePostModalStore } from 'store/modal';
 
-interface PostCardProps {
+type PostCardProps = {
     className?: string;
-    postData: PostData;
+    initialPostData: PostData;
     showSubreaditLink?: boolean;
     username?: string;
-    userComments?: PostComments;
+    initialUserPostComments?: PostComments;
     hidePostContent?: boolean;
-}
+};
 
 const PostCard = ({
     className,
-    postData,
+    initialPostData,
     showSubreaditLink = true,
     username,
-    userComments,
+    initialUserPostComments,
     hidePostContent = false,
 }: PostCardProps) => {
-    const { data } = useCheckUserReadPost(postData.id);
+    const { data: userReadPostData } = useCheckUserReadPost(initialPostData.id);
+    const { data: postData } = useGetPostById(initialPostData.id, {
+        initialData: initialPostData,
+        staleTime: Infinity,
+    });
     const { mutate } = useCreateUserReadPost();
     const setPostModal = usePostModalStore((s) => s.setPostModal);
     const [clicked, setClicked] = useState(false);
 
-    const userOwnsPost = username === postData.user?.username;
+    const userOwnsPost = username === postData?.user?.username;
     const canHidePostContent = !!(
-        userComments?.length &&
+        initialUserPostComments?.length &&
         (hidePostContent || !userOwnsPost)
     );
 
+    if (!postData || (!postData.user && !initialUserPostComments?.length))
+        return null;
+
     return (
-        <>
-            <CardWrapper
-                className={className}
-                onClick={() => {
-                    mutate(postData.id);
-                    setClicked(true);
-                    setPostModal(postData, false);
-                }}
+        <CardWrapper
+            className={className}
+            onClick={() => {
+                mutate(postData.id);
+                setClicked(true);
+                setPostModal(postData, false);
+            }}
+        >
+            <div
+                className={cx(styles.post_card, {
+                    [styles.post_comment_card]: canHidePostContent,
+                })}
             >
-                <div
-                    className={cx(styles.post_card, {
-                        [styles.post_comment_card]: canHidePostContent,
-                    })}
-                >
-                    <Post
-                        bodyMuted={!!data || clicked}
-                        postData={postData}
-                        showSubreaditLink={showSubreaditLink}
-                        commentedOnUsername={
-                            (canHidePostContent && username) || ''
-                        }
-                        openModalToComments={() => {
-                            setPostModal(postData, true);
-                        }}
-                        isCard
-                    />
-                </div>
-                {userComments && userComments.length && (
-                    <div className={cx(styles.comments)}>
-                        {userComments.map((comment) => {
-                            return (
+                <Post
+                    bodyMuted={!!userReadPostData || clicked}
+                    postData={postData}
+                    showSubreaditLink={showSubreaditLink}
+                    commentedOnUsername={(canHidePostContent && username) || ''}
+                    openModalToComments={() => {
+                        setPostModal(postData, true);
+                    }}
+                    isCard
+                />
+            </div>
+            {initialUserPostComments && initialUserPostComments.length && (
+                <div className={cx(styles.comments)}>
+                    {initialUserPostComments.map((comment) => {
+                        return (
+                            <div
+                                className={cx(styles.comments_item)}
+                                key={comment.id}
+                            >
                                 <div
-                                    className={cx(styles.comments_item)}
-                                    key={comment.id}
+                                    className={cx(
+                                        styles.comments_item_container
+                                    )}
                                 >
                                     <div
                                         className={cx(
-                                            styles.comments_item_container
+                                            styles.comments_item_content
                                         )}
                                     >
-                                        <div
-                                            className={cx(
-                                                styles.comments_item_content
-                                            )}
-                                        >
-                                            {comment.user && (
-                                                <div
-                                                    className={
-                                                        styles.comments_item_user
-                                                    }
-                                                >
-                                                    {comment.user.username}
-                                                </div>
-                                            )}
-                                            <div>{comment.text}</div>
-                                        </div>
+                                        {comment.user && (
+                                            <div
+                                                className={
+                                                    styles.comments_item_user
+                                                }
+                                            >
+                                                {comment.user.username}
+                                            </div>
+                                        )}
+                                        <div>{comment.text}</div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </CardWrapper>
-        </>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </CardWrapper>
     );
 };
 

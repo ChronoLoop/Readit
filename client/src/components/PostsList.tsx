@@ -1,42 +1,37 @@
-import { GetPostsResponse } from 'services';
 import cx from 'classnames';
+import { GetPostsResponse } from 'services';
 import styles from './PostsList.module.scss';
 import PostCard from './PostCard';
 import CardWrapper from './CardWrapper';
-import { ReactNode } from 'react';
 import { ContentError } from 'components';
 import { useNavigate } from 'react-router-dom';
 import useCreateSubreaditPostRoute from 'hooks/useCreateSubreaditPostRoute';
+import LoadingPlaceholder from './LoadingPlaceholder';
 
 const PostCardLoading = () => {
     return (
-        <CardWrapper className={styles.card} disableHover paddingAround>
-            <div className={cx(styles.loading_line, styles.loading_line_2)} />
-            <div className={cx(styles.loading_line, styles.loading_line_5)} />
-            <div className={cx(styles.loading_text_block)} />
-            <div className={cx(styles.loading_line, styles.loading_line_2)} />
+        <CardWrapper
+            className={cx(styles.card, styles.card_loading)}
+            paddingTopRightBottom
+        >
+            <LoadingPlaceholder type="line2" />
+            <LoadingPlaceholder type="line5" />
+            <LoadingPlaceholder type="textblock" />
+            <LoadingPlaceholder type="line2" />
         </CardWrapper>
     );
 };
 
 const PostListLoading = () => {
     return (
-        <div className={styles.container}>
+        <>
             <PostCardLoading />
             <PostCardLoading />
             <PostCardLoading />
             <PostCardLoading />
             <PostCardLoading />
-        </div>
+        </>
     );
-};
-
-interface PostsListContainerProps {
-    children: ReactNode;
-}
-
-const PostsListContainer = ({ children }: PostsListContainerProps) => {
-    return <div className={styles.container}>{children}</div>;
 };
 
 interface PostsListProps {
@@ -64,16 +59,15 @@ const PostsList = ({ posts, showSubreaditLink = true }: PostsListProps) => {
         return (
             <PostCard
                 key={postData.id}
-                postData={postData}
+                initialPostData={postData}
                 showSubreaditLink={showSubreaditLink}
             />
         );
     });
 
-    return <PostsListContainer>{postsList}</PostsListContainer>;
+    return <>{postsList}</>;
 };
 
 PostsList.Loading = PostListLoading;
-PostsList.Container = PostsListContainer;
 
 export default PostsList;

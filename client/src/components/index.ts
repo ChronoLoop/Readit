@@ -1,5 +1,6 @@
 export * from './Layout';
 export * from './modals';
+export * from './siderbar';
 export { default as Button } from './Button';
 export { default as Dropdown } from './Dropdown';
 export { default as ErrorText } from './ErrorText';
@@ -13,7 +14,6 @@ export { default as Post } from './Post';
 export { default as PostComments } from './PostComments';
 export { default as PostVoteControls } from './PostVoteControls';
 export { default as PostsList } from './PostsList';
-export { default as SidebarWrapper } from './SidebarWrapper';
 export { default as TextArea } from './TextArea';
 export { default as AuthRoute } from './AuthRoute';
 export { default as ContentError } from './ContentError';

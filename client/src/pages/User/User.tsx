@@ -9,13 +9,15 @@ const UserPage = () => {
     return (
         <>
             <UserNav />
-            <PageContentWrapper>
-                <Routes>
-                    <Route index element={<UserOverview />} />
-                    <Route path="/posts" element={<UserPosts />} />
-                    <Route path="/comments" element={<UserComments />} />
-                </Routes>
-            </PageContentWrapper>
+            <PageContentWrapper
+                content={
+                    <Routes>
+                        <Route index element={<UserOverview />} />
+                        <Route path="/posts" element={<UserPosts />} />
+                        <Route path="/comments" element={<UserComments />} />
+                    </Routes>
+                }
+            />
         </>
     );
 };

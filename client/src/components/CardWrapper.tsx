@@ -6,22 +6,24 @@ interface CardWrapperProps {
     children: ReactNode;
     onClick?: () => void;
     className?: string;
-    disableHover?: boolean;
-    paddingAround?: boolean;
+    paddingTopRightBottom?: boolean;
+    padding?: boolean;
 }
 
 const CardWrapper = ({
     children,
     onClick,
     className,
-    disableHover,
-    paddingAround,
+    paddingTopRightBottom,
+    padding,
 }: CardWrapperProps) => {
     return (
         <div
             className={cx(styles.container, className, {
-                [styles.container_padding]: paddingAround,
-                [styles.container_no_hover]: disableHover,
+                [styles.container_padding_top_right_bottom]:
+                    paddingTopRightBottom,
+                [styles.container_padding]: padding,
+                [styles.container_no_hover]: !onClick,
             })}
             onClick={() => {
                 onClick?.();

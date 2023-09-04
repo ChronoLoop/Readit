@@ -26,6 +26,7 @@ const CreateSubreaditModal = () => {
         register,
         handleSubmit,
         formState: { isValid, errors },
+        reset,
     } = useForm<SubreaditFormType>({
         mode: 'onChange',
         resolver: zodResolver(SubreaditSchema),
@@ -35,6 +36,7 @@ const CreateSubreaditModal = () => {
         onSuccess: (_, submittedData) => {
             toggleShowCreateSubreaditModal();
             navigate(`/r/${submittedData.name}`);
+            reset();
         },
     });
 

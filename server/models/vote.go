@@ -49,7 +49,8 @@ func CreatePostVote(postVote *PostVote) error {
 }
 
 const findPostVoteById = `
-SELECT created_at, updated_at, deleted_at, user_id, value, post_id FROM post_votes
+SELECT created_at, updated_at, deleted_at, user_id, value, post_id 
+FROM post_votes
 WHERE post_id = $1 AND user_id = $2 LIMIT 1
 `
 

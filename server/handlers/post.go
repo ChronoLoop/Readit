@@ -114,13 +114,15 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		common.RespondError(w, http.StatusBadRequest, "Invalid fields")
 		return
 	}
-
-	if err := models.CreatePost(post.UserID, post.SubreaditID, post.Title, post.Text); err != nil {
+	createdPostID, err := models.CreatePost(post.UserID, post.SubreaditID, post.Title, post.Text)
+	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	common.RespondJSON(w, http.StatusOK, struct {
+		ID int64 `json:"id"`
+	}{ID: createdPostID})
 }
 
 func GetPosts(w http.ResponseWriter, r *http.Request) {
@@ -320,4 +322,33 @@ func DeleteUserPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func GetUserRecentReadPosts(w http.ResponseWriter, r *http.Request) {
+	subreaditName := r.URL.Query().Get("subreaditName")
+	issuer, err := middleware.GetJwtClaimsIssuer(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if subreaditName == "" {
+		posts, err := models.GetUserRecentReadPosts(issuer)
+		if err != nil {
+			common.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		postsResponse := createResponsePosts(&posts)
+		common.RespondJSON(w, http.StatusOK, postsResponse)
+		return
+	}
+
+	posts, err := models.GetUserRecentReadSubreaditPosts(issuer, subreaditName)
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	postsResponse := createResponsePosts(&posts)
+	common.RespondJSON(w, http.StatusOK, postsResponse)
 }
