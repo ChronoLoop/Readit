@@ -5,8 +5,8 @@ import {
     useQueryClient,
     UseQueryOptions,
 } from '@tanstack/react-query';
+import useCanFetch from 'hooks/canFetch';
 import { axiosPrivate } from './apiClient';
-import { useUserQuery } from './auth';
 
 export const POST_VOTE_KEYS = {
     all: ['post-vote'] as const,
@@ -105,13 +105,13 @@ export const useGetPostVote = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery<VoteResponse>(
         POST_VOTE_KEYS.postId(postId),
         () => getPostVote(postId),
         {
             ...options,
-            enabled: !!postId && !isFetching,
+            enabled: !!postId && canFetch,
         }
     );
 };
@@ -131,11 +131,11 @@ export const useGetPostCommentVote = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
 
     return useQuery<VoteResponse>(
         POST_COMMENT_VOTE_KEYS.commentId(postCommentId),
         () => getPostCommentVote(postCommentId),
-        { ...options, enabled: !!postCommentId && !isFetching }
+        { ...options, enabled: !!postCommentId && canFetch }
     );
 };

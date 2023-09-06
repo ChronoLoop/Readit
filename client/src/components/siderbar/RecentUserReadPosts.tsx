@@ -38,19 +38,21 @@ type RecentUserReadPostsSectionProps = {
 const RecentUserReadPostsSection = ({
     initialPostData,
 }: RecentUserReadPostsSectionProps) => {
-    const { mutate } = useCreateUserReadPost();
+    const { mutate } = useCreateUserReadPost(initialPostData.subreadit.name);
     const setPostModal = usePostModalStore((s) => s.setPostModal);
 
     const { data: postData } = useGetPostById(initialPostData.id, {
-        initialData: initialPostData,
+        initialData: () => initialPostData,
         staleTime: Infinity,
     });
 
     const { data: voteData } = useGetPostVote(initialPostData.id, {
-        initialData: {
-            id: initialPostData.id,
-            totalVoteValue: initialPostData.totalVoteValue,
-            userVote: initialPostData.userVote,
+        initialData: () => {
+            return {
+                id: initialPostData.id,
+                totalVoteValue: initialPostData.totalVoteValue,
+                userVote: initialPostData.userVote,
+            };
         },
         staleTime: Infinity,
     });

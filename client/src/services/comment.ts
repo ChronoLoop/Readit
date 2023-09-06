@@ -4,11 +4,11 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query';
+import useCanFetch from 'hooks/canFetch';
 import { toast } from 'react-toastify';
 import useUserStore from 'store/user';
 import z from 'zod';
 import { axiosPrivate } from './apiClient';
-import { useUserQuery } from './auth';
 import { POSTS_KEY } from './posts';
 import { PROFILE_KEY } from './profile';
 import useRequestErrorToast from './useRequestErrorToast';
@@ -116,12 +116,12 @@ export const getPostComments = async (postId: number) => {
 };
 
 export const useGetPostComments = (postId: number) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery(
         POST_COMMENT_KEY.postId(postId),
         () => getPostComments(postId),
         {
-            enabled: !!postId && !isFetching,
+            enabled: !!postId && canFetch,
         }
     );
 };

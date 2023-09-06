@@ -14,10 +14,12 @@ const PostVoteControls = ({
     const { mutate } = useSendPostVote(postId);
 
     const { data } = useGetPostVote(postId, {
-        initialData: {
-            id: postId,
-            totalVoteValue: totalVoteValue,
-            userVote: userVote,
+        initialData: () => {
+            return {
+                id: postId,
+                totalVoteValue: totalVoteValue,
+                userVote: userVote,
+            };
         },
         staleTime: Infinity,
     });

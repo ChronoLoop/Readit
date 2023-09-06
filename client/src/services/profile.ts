@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import useCanFetch from 'hooks/canFetch';
 import { axiosPrivate } from './apiClient';
-import { useUserQuery } from './auth';
 import { PostComments } from './comment';
 import { PostData } from './posts';
 
@@ -31,13 +31,13 @@ export const useGetUserProfileOverview = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery<GetUserProfileOverviewResponse>(
         PROFILE_KEY.overview(username),
         () => getUserProfileOverview(username),
         {
             ...options,
-            enabled: !!username && !isFetching,
+            enabled: !!username && canFetch,
             retry: 1,
         }
     );

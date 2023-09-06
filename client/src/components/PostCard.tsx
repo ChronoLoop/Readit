@@ -32,10 +32,10 @@ const PostCard = ({
 }: PostCardProps) => {
     const { data: userReadPostData } = useCheckUserReadPost(initialPostData.id);
     const { data: postData } = useGetPostById(initialPostData.id, {
-        initialData: initialPostData,
+        initialData: () => initialPostData,
         staleTime: Infinity,
     });
-    const { mutate } = useCreateUserReadPost();
+    const { mutate } = useCreateUserReadPost(initialPostData.subreadit.name);
     const setPostModal = usePostModalStore((s) => s.setPostModal);
     const [clicked, setClicked] = useState(false);
 
