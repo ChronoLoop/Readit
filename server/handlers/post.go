@@ -338,7 +338,7 @@ func GetUserRecentReadPosts(w http.ResponseWriter, r *http.Request) {
 			common.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		postsResponse := createResponsePosts(&posts)
+		postsResponse := createResponsePostsWithUser(&posts, issuer)
 		common.RespondJSON(w, http.StatusOK, postsResponse)
 		return
 	}
@@ -349,6 +349,6 @@ func GetUserRecentReadPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsResponse := createResponsePosts(&posts)
+	postsResponse := createResponsePostsWithUser(&posts, issuer)
 	common.RespondJSON(w, http.StatusOK, postsResponse)
 }

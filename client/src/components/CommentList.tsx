@@ -81,10 +81,12 @@ const CommentVoteControls = ({
     const { mutate } = useSendPostCommentVote(commentId);
 
     const { data } = useGetPostCommentVote(commentId, {
-        initialData: {
-            id: commentId,
-            totalVoteValue: totalVoteValue,
-            userVote: userVote,
+        initialData: () => {
+            return {
+                id: commentId,
+                totalVoteValue: totalVoteValue,
+                userVote: userVote,
+            };
         },
         staleTime: Infinity,
     });

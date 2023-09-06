@@ -37,17 +37,23 @@ axiosPrivate.interceptors.request.use(
     }
 );
 
+//disable fetch when fetching user, refetching accessToken,
+
 axiosPrivate.interceptors.response.use(
     (res) => res,
     async (error) => {
         const prevRequest = error?.config;
+        const isAuth = !!useUserStore.getState().user;
+        const { setIsRefreshingAccessToken } = useUserStore.getState();
         if (
             error?.response?.status === 401 &&
             !prevRequest._retry &&
-            (!firstRefreshRequestSent || !!useUserStore.getState().user)
+            (!firstRefreshRequestSent || isAuth)
         ) {
             prevRequest._retry = true;
+            setIsRefreshingAccessToken(true);
             await refreshAccessToken();
+            setIsRefreshingAccessToken(false);
             return axiosPrivate(prevRequest);
         }
         return Promise.reject(error);

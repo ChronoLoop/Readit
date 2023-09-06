@@ -5,9 +5,9 @@ import {
     useQueryClient,
     UseQueryOptions,
 } from '@tanstack/react-query';
+import useCanFetch from 'hooks/canFetch';
 import { toast } from 'react-toastify';
 import { axiosPrivate } from './apiClient';
-import { useUserQuery } from './auth';
 import useRequestErrorToast from './useRequestErrorToast';
 
 export const POSTS_KEY = {
@@ -65,9 +65,9 @@ const getPosts = async () => {
 };
 
 export const useGetHomePosts = () => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery(POSTS_KEY.home(), getPosts, {
-        enabled: !isFetching,
+        enabled: canFetch,
     });
 };
 
@@ -83,10 +83,10 @@ export const useGetPostById = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery<PostData>(POSTS_KEY.postId(id), () => getPostById(id), {
         ...options,
-        enabled: !isFetching,
+        enabled: canFetch,
         retry: 1,
     });
 };
@@ -99,11 +99,11 @@ const getSubreaditPosts = async (subreaditName: string) => {
 };
 
 export const useGetSubreaditPosts = (subreaditName: string) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery(
         POSTS_KEY.subreadit(subreaditName),
         () => getSubreaditPosts(subreaditName),
-        { enabled: !!subreaditName && !isFetching }
+        { enabled: !!subreaditName && canFetch }
     );
 };
 
@@ -178,14 +178,14 @@ export const useCheckUserReadPost = (
         'queryKey' | 'queryFn'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery<CheckUserReadPostResponse>(
         POSTS_KEY.readPost(postId),
         () => checkUserReadPost(postId),
         {
             ...options,
             retry: false,
-            enabled: (options?.enabled ?? true) && !isFetching,
+            enabled: (options?.enabled ?? true) && canFetch,
         }
     );
 };
@@ -196,6 +196,7 @@ const createUserReadPost = async (postId: number) => {
 };
 
 export const useCreateUserReadPost = (
+    subreaditName: string,
     options?: Omit<
         UseMutationOptions<null, unknown, number, unknown>,
         'mutationFn'
@@ -212,6 +213,9 @@ export const useCreateUserReadPost = (
                 options?.onSuccess?.(data, variables, context);
 
                 queryClient.invalidateQueries(POSTS_KEY.userRecentReadPosts());
+                queryClient.invalidateQueries(
+                    POSTS_KEY.userRecentReadSubreaditPosts(subreaditName)
+                );
             },
         }
     );
@@ -279,9 +283,9 @@ const getUserRecentReadPosts = async () => {
 };
 
 export const useGetUserRecentReadPosts = () => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery(POSTS_KEY.userRecentReadPosts(), getUserRecentReadPosts, {
-        enabled: !isFetching,
+        enabled: canFetch,
     });
 };
 
@@ -301,13 +305,13 @@ export const useGetUserRecentReadSubreaditPosts = (
         'queryKey' | 'queryFn' | 'enabled'
     >
 ) => {
-    const { isFetching } = useUserQuery({ refetchOnMount: false });
+    const canFetch = useCanFetch();
     return useQuery<GetUserRecentReadSubreaditPostsResponse>(
         POSTS_KEY.userRecentReadSubreaditPosts(subreaditName),
         () => getUserRecentReadSubreaditPosts(subreaditName),
         {
             ...options,
-            enabled: !isFetching,
+            enabled: canFetch,
         }
     );
 };

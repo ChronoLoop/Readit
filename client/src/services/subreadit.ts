@@ -4,6 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query';
+import useCanFetch from 'hooks/canFetch';
 import useUserStore from 'store/user';
 import { axiosPrivate } from './apiClient';
 import useRequestErrorToast from './useRequestErrorToast';
@@ -135,9 +136,10 @@ const getUserSubreadits = async () => {
 
 export const useGetUserSubreadits = () => {
     const isAuth = useUserStore((s) => !!s.user);
+    const canFetch = useCanFetch();
     return useQuery(SUBREADIT_KEYS.all, getUserSubreadits, {
         retry: false,
-        enabled: isAuth,
+        enabled: isAuth && canFetch,
     });
 };
 
@@ -150,12 +152,13 @@ const getSubreaditMe = async (subreaditName: string) => {
 
 export const useGetSubreaditMe = (subreaditName: string) => {
     const isAuth = useUserStore((s) => s.user);
+    const canFetch = useCanFetch();
     return useQuery(
         SUBREADIT_KEYS.subreaditMe(subreaditName),
         () => getSubreaditMe(subreaditName),
         {
             retry: false,
-            enabled: !!isAuth,
+            enabled: !!isAuth && canFetch,
         }
     );
 };
