@@ -44,16 +44,13 @@ axiosPrivate.interceptors.response.use(
     async (error) => {
         const prevRequest = error?.config;
         const isAuth = !!useUserStore.getState().user;
-        const { setIsRefreshingAccessToken } = useUserStore.getState();
         if (
             error?.response?.status === 401 &&
             !prevRequest._retry &&
             (!firstRefreshRequestSent || isAuth)
         ) {
             prevRequest._retry = true;
-            setIsRefreshingAccessToken(true);
             await refreshAccessToken();
-            setIsRefreshingAccessToken(false);
             return axiosPrivate(prevRequest);
         }
         return Promise.reject(error);
