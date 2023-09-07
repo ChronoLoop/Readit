@@ -29,7 +29,6 @@ const PostListLoading = () => {
             <PostCardLoading />
             <PostCardLoading />
             <PostCardLoading />
-            <PostCardLoading />
         </>
     );
 };

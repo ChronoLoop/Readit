@@ -238,3 +238,18 @@ func GetSubreaditModerators(subreaditId int64) ([]SubreaditUser, error) {
 
 	return subreaditUsers, nil
 }
+
+const getNumberOfUsersInSubreadit = `
+SELECT COUNT(*) 
+from subreadit_users
+LEFT JOIN subreadits ON subreadits.id = subreadit_users.subreadit_id
+WHERE subreadits.name = $1
+`
+
+func GetNumberOfUsersInSubreadit(subreaditName string) (int64, error) {
+	var count int64
+	if err := db.Connection.Get(&count, getNumberOfUsersInSubreadit, subreaditName); err != nil {
+		return count, errors.New("count not get number of users in subreadit")
+	}
+	return count, nil
+}

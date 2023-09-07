@@ -15,5 +15,6 @@ func SubreaditRouter(r chi.Router) {
 		r.With(middleware.IsAuthorized).Post("/join", handlers.JoinSubreadit)
 		r.Get("/moderator", handlers.GetSubreaditModerators)
 		r.With(middleware.IsAuthorized).Delete("/leave", handlers.LeaveSubreadit)
+		r.Get("/users/total", handlers.GetSubreaditTotalUsers)
 	})
 }

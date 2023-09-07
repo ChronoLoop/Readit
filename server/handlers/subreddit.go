@@ -235,3 +235,21 @@ func GetSubreaditMe(w http.ResponseWriter, r *http.Request) {
 	userSubreaditResponse := createResponseSubreaditUser(&subreaditUser)
 	common.RespondJSON(w, http.StatusOK, userSubreaditResponse)
 }
+
+func GetSubreaditTotalUsers(w http.ResponseWriter, r *http.Request) {
+	subreaditName := r.URL.Query().Get("subreaditName")
+	_, err := models.FindSubreaditByName(subreaditName)
+	if err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	count, err := models.GetNumberOfUsersInSubreadit(subreaditName)
+	if err != nil {
+		common.RespondError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	common.RespondJSON(w, http.StatusOK, struct {
+		Total int64 `json:"total"`
+	}{Total: count})
+}

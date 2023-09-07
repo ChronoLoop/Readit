@@ -4,8 +4,8 @@ import {
     PostsList,
     ContentError,
     RecentUserReadPosts,
-    HomeAboutCard,
 } from 'components';
+import HomeAboutCard from './HomeAboutCard';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { useGetHomePosts, useGetUserRecentReadPosts } from 'services';
 

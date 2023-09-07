@@ -20,6 +20,8 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ContentError from './ContentError';
 import { DeleteModal } from './modals';
+import { Link } from 'react-router-dom';
+import { usePostModalStore } from 'store/modal';
 
 interface CommentReplyInputProps {
     postId: number;
@@ -161,6 +163,7 @@ const Comment = ({ comment, comments }: CommentProps) => {
     const [isOpen, setIsOpen] = useState(true);
     const [isReplyInputOpen, setIsReplyInputOpen] = useState(false);
     const isAuth = useUserStore((s) => !!s.user);
+    const closePostModal = usePostModalStore((s) => s.closePostModal);
 
     if (!comment) return null;
 
@@ -192,9 +195,16 @@ const Comment = ({ comment, comments }: CommentProps) => {
                     <div className={styles.comment}>
                         <div className={styles.comment_content}>
                             {comment.user && (
-                                <div className={styles.comment_username}>
+                                <Link
+                                    className={styles.comment_username}
+                                    to={`/u/${comment.user.username}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        closePostModal();
+                                    }}
+                                >
                                     {comment.user.username}
-                                </div>
+                                </Link>
                             )}
                             <div className={styles.comment_text}>
                                 {comment.text}
