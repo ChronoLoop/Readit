@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import useCanFetch from 'hooks/canFetch';
+import useCanFetch from './canFetch';
 import { axiosPrivate } from './apiClient';
 import { PostComments } from './comment';
 import { PostData } from './posts';

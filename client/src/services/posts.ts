@@ -5,7 +5,7 @@ import {
     useQueryClient,
     UseQueryOptions,
 } from '@tanstack/react-query';
-import useCanFetch from 'hooks/canFetch';
+import useCanFetch from './canFetch';
 import { toast } from 'react-toastify';
 import { axiosPrivate } from './apiClient';
 import useRequestErrorToast from './useRequestErrorToast';
