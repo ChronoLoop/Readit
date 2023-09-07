@@ -115,6 +115,20 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	createdPostID, err := models.CreatePost(post.UserID, post.SubreaditID, post.Title, post.Text)
+
+	postVote := models.PostVote{
+		Vote: models.Vote{
+			UserID: issuer,
+			Value:  1,
+		},
+		PostID: createdPostID,
+	}
+
+	if err := models.CreatePostVote(&postVote); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
