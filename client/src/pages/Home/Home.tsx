@@ -4,6 +4,7 @@ import {
     PostsList,
     ContentError,
     RecentUserReadPosts,
+    HomeAboutCard,
 } from 'components';
 import { FaExclamationTriangle } from 'react-icons/fa';
 import { useGetHomePosts, useGetUserRecentReadPosts } from 'services';
@@ -11,7 +12,14 @@ import { useGetHomePosts, useGetUserRecentReadPosts } from 'services';
 const HomePageSidebar = () => {
     const { isLoading, error, data } = useGetUserRecentReadPosts();
     return (
-        <RecentUserReadPosts isLoading={isLoading} error={error} data={data} />
+        <>
+            <HomeAboutCard />
+            <RecentUserReadPosts
+                isLoading={isLoading}
+                error={error}
+                data={data}
+            />
+        </>
     );
 };
 

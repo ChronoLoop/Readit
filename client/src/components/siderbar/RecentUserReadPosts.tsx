@@ -8,7 +8,9 @@ import {
     useGetPostVote,
 } from 'services';
 import { usePostModalStore } from 'store/modal';
+import useUserStore from 'store/user';
 import styles from './RecentUserReadPosts.module.scss';
+import SidebarCard from './SidebarCard';
 
 const RecentUserReadPostsLoading = () => {
     return (
@@ -60,7 +62,7 @@ const RecentUserReadPostsSection = ({
     if (!postData) return null;
 
     return (
-        <div
+        <SidebarCard.Section
             className={styles.section}
             onClick={() => {
                 mutate(postData.id);
@@ -72,7 +74,7 @@ const RecentUserReadPostsSection = ({
                 <span>{voteData ? voteData.totalVoteValue : 0} points · </span>
                 <span>{postData.numberOfComments} comments</span>
             </div>
-        </div>
+        </SidebarCard.Section>
     );
 };
 
@@ -87,13 +89,14 @@ const RecentUserReadPosts = ({
     error,
     data,
 }: RecentUserReadPostsProps) => {
+    const isAuth = useUserStore((s) => s.user);
+    if (!isAuth) return null;
     if (isLoading) return <RecentUserReadPostsLoading />;
     else if (axios.isAxiosError(error)) {
         return null;
     } else if (!data || !data.length) return null;
     return (
-        <CardWrapper padding>
-            <h2 className={styles.card_heading}>Recent Viewed Posts</h2>
+        <SidebarCard heading={'Recent Viewed Posts'} mutedHeading={false}>
             {data.map((postData) => {
                 return (
                     <RecentUserReadPostsSection
@@ -102,7 +105,7 @@ const RecentUserReadPosts = ({
                     />
                 );
             })}
-        </CardWrapper>
+        </SidebarCard>
     );
 };
 
