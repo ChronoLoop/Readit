@@ -1,10 +1,7 @@
 import Button from 'components/Button';
-import SidebarCard from './SidebarCard';
-import styles from './HomeAboutCard.module.scss';
 import { useCreateSubreaditModalStore } from 'store/modal';
-import { useNavigate } from 'react-router-dom';
-import useCreateSubreaditPostRoute from 'hooks/useCreateSubreaditPostRoute';
 import useUserStore from 'store/user';
+import { CreatePostButton, SidebarCard } from 'components';
 
 const HomeAboutCardCreateSubreaditButton = () => {
     const toggleShowCreateSubreaditModal = useCreateSubreaditModalStore(
@@ -25,22 +22,6 @@ const HomeAboutCardCreateSubreaditButton = () => {
         </Button>
     );
 };
-
-const HomeAboutCardCreatePostButton = () => {
-    const navigate = useNavigate();
-    const route = useCreateSubreaditPostRoute();
-    return (
-        <Button
-            variant="primary"
-            onClick={() => {
-                navigate(route);
-            }}
-        >
-            Create Post
-        </Button>
-    );
-};
-
 const HomeAboutCard = () => {
     const isAuth = useUserStore((s) => !!s.user);
     return (
@@ -51,10 +32,8 @@ const HomeAboutCard = () => {
             </SidebarCard.Section>
             {isAuth && (
                 <SidebarCard.Section>
-                    <div className={styles.buttons}>
-                        <HomeAboutCardCreatePostButton />
-                        <HomeAboutCardCreateSubreaditButton />
-                    </div>
+                    <CreatePostButton />
+                    <HomeAboutCardCreateSubreaditButton />
                 </SidebarCard.Section>
             )}
         </SidebarCard>

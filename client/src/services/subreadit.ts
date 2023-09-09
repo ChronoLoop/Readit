@@ -13,6 +13,11 @@ export const SUBREADIT_KEYS = {
     all: ['user-subreadits'] as const,
     subreaditMe: (subreaditName: string) =>
         [...SUBREADIT_KEYS.all, 'subreadit-me', subreaditName] as const,
+    subreaditTotalUsers: (subreaditName: string) => [
+        ...SUBREADIT_KEYS.all,
+        'total-users',
+        subreaditName,
+    ],
 };
 
 interface CreateSubreaditData {
@@ -91,6 +96,10 @@ export const useJoinSubreadit = (
                 queryClient.invalidateQueries(
                     SUBREADIT_KEYS.subreaditMe(variables)
                 );
+                queryClient.invalidateQueries(
+                    SUBREADIT_KEYS.subreaditTotalUsers(variables)
+                );
+
                 options?.onSuccess?.(data, variables, context);
             },
         }
@@ -121,6 +130,9 @@ export const useLeaveSubreadit = (
             ...options,
             onSuccess: (data, variables, context) => {
                 queryClient.resetQueries(SUBREADIT_KEYS.subreaditMe(variables));
+                queryClient.invalidateQueries(
+                    SUBREADIT_KEYS.subreaditTotalUsers(variables)
+                );
                 options?.onSuccess?.(data, variables, context);
             },
         }
@@ -159,6 +171,27 @@ export const useGetSubreaditMe = (subreaditName: string) => {
         {
             retry: false,
             enabled: !!isAuth && canFetch,
+        }
+    );
+};
+
+type GetSubreaditTotalUsersResponse = {
+    total: number;
+};
+
+const getSubreaditTotalUsers = async (subreaditName: string) => {
+    const response = await axiosPrivate.get<GetSubreaditTotalUsersResponse>(
+        `subreadit/users/total?subreaditName=${subreaditName}`
+    );
+    return response.data;
+};
+
+export const useGetSubreaditTotalUsers = (subreaditName: string) => {
+    return useQuery(
+        SUBREADIT_KEYS.subreaditTotalUsers(subreaditName),
+        () => getSubreaditTotalUsers(subreaditName),
+        {
+            retry: false,
         }
     );
 };

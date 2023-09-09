@@ -26,10 +26,10 @@ const RecentUserReadPostsLoading = () => {
 
 const RecentUserReadPostsLoadingSection = () => {
     return (
-        <div className={styles.section}>
+        <SidebarCard.Section className={styles.section}>
             <LoadingPlaceholder type="line" className={styles.line} />
             <LoadingPlaceholder type="line5" />
-        </div>
+        </SidebarCard.Section>
     );
 };
 
