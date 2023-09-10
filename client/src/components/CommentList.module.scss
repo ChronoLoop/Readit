@@ -17,6 +17,10 @@
     display: flex;
     flex-direction: column;
 
+    &_closed {
+        display: none;
+    }
+
     &_content {
         padding-left: 0.4rem;
     }

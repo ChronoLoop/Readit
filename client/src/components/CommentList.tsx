@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import cx from 'classnames';
 import {
     CreatePostCommentData,
     PostComments,
@@ -184,92 +185,7 @@ const Comment = ({ comment, comments }: CommentProps) => {
             className={styles.comment_container}
             id={createCommentTagId(comment.id)}
         >
-            {isOpen ? (
-                <>
-                    <div
-                        className={styles.line}
-                        onClick={() => setIsOpen((prev) => !prev)}
-                        aria-label="Hide replies"
-                        role="button"
-                    />
-                    <div className={styles.comment}>
-                        <div className={styles.comment_content}>
-                            {comment.user && (
-                                <Link
-                                    className={styles.comment_username}
-                                    to={`/u/${comment.user.username}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        closePostModal();
-                                    }}
-                                >
-                                    {comment.user.username}
-                                </Link>
-                            )}
-                            <div className={styles.comment_text}>
-                                {comment.text}
-                            </div>
-                        </div>
-                        <div className={styles.comment_interactions}>
-                            <CommentVoteControls
-                                commentId={comment.id}
-                                totalVoteValue={comment.totalVoteValue}
-                                userVote={comment.userVote}
-                            />
-
-                            <Button
-                                className={styles.comment_interactions_button}
-                                onClick={toggleReplyCommentInput}
-                            >
-                                <i
-                                    className={
-                                        styles.comment_interactions_button_icon
-                                    }
-                                >
-                                    <FaRegCommentAlt size={'1rem'} />
-                                </i>
-                                reply
-                            </Button>
-                            {comment.user && (
-                                <CommentDeleteButton
-                                    commentUserId={comment.user.id}
-                                    username={comment.user.username}
-                                    commendId={comment.id}
-                                    postId={comment.postId}
-                                />
-                            )}
-                        </div>
-                    </div>
-                    {(isReplyInputOpen || !!currentCommentReplies) && (
-                        <div className={styles.replies}>
-                            {isReplyInputOpen && (
-                                <div className={styles.comment_container}>
-                                    <div
-                                        className={styles.line}
-                                        onClick={toggleReplyCommentInput}
-                                        aria-label="Hide reply text input"
-                                        role="button"
-                                    />
-                                    <div className={styles.comment}>
-                                        <CommentReplyInput
-                                            postId={comment.postId}
-                                            commentId={comment.id}
-                                            onClose={toggleReplyCommentInput}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            {currentCommentReplies.map((reply) => (
-                                <Comment
-                                    key={reply.id}
-                                    comment={reply}
-                                    comments={otherReplies}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </>
-            ) : (
+            {!isOpen && (
                 <Button
                     onClick={() => setIsOpen((prev) => !prev)}
                     aria-label="Open replies"
@@ -277,6 +193,93 @@ const Comment = ({ comment, comments }: CommentProps) => {
                     <BsArrowsAngleExpand className={styles.open_comment_icon} />
                 </Button>
             )}
+            <div
+                className={cx(!isOpen ? styles.comment_closed : undefined)}
+                aria-hidden={!isOpen}
+            >
+                <div
+                    className={styles.line}
+                    onClick={() => setIsOpen((prev) => !prev)}
+                    aria-label="Hide replies"
+                    role="button"
+                />
+                <div className={styles.comment}>
+                    <div className={styles.comment_content}>
+                        {comment.user && (
+                            <Link
+                                className={styles.comment_username}
+                                to={`/u/${comment.user.username}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    closePostModal();
+                                }}
+                            >
+                                {comment.user.username}
+                            </Link>
+                        )}
+                        <div className={styles.comment_text}>
+                            {comment.text}
+                        </div>
+                    </div>
+                    <div className={styles.comment_interactions}>
+                        <CommentVoteControls
+                            commentId={comment.id}
+                            totalVoteValue={comment.totalVoteValue}
+                            userVote={comment.userVote}
+                        />
+
+                        <Button
+                            className={styles.comment_interactions_button}
+                            onClick={toggleReplyCommentInput}
+                        >
+                            <i
+                                className={
+                                    styles.comment_interactions_button_icon
+                                }
+                            >
+                                <FaRegCommentAlt size={'1rem'} />
+                            </i>
+                            reply
+                        </Button>
+                        {comment.user && (
+                            <CommentDeleteButton
+                                commentUserId={comment.user.id}
+                                username={comment.user.username}
+                                commendId={comment.id}
+                                postId={comment.postId}
+                            />
+                        )}
+                    </div>
+                </div>
+                {(isReplyInputOpen || !!currentCommentReplies) && (
+                    <div className={styles.replies}>
+                        {isReplyInputOpen && (
+                            <div className={styles.comment_container}>
+                                <div
+                                    className={styles.line}
+                                    onClick={toggleReplyCommentInput}
+                                    aria-label="Hide reply text input"
+                                    role="button"
+                                />
+                                <div className={styles.comment}>
+                                    <CommentReplyInput
+                                        postId={comment.postId}
+                                        commentId={comment.id}
+                                        onClose={toggleReplyCommentInput}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {currentCommentReplies.map((reply) => (
+                            <Comment
+                                key={reply.id}
+                                comment={reply}
+                                comments={otherReplies}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
