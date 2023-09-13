@@ -13,9 +13,9 @@ export const SUBREADIT_KEYS = {
     all: ['user-subreadits'] as const,
     subreaditMe: (subreaditName: string) =>
         [...SUBREADIT_KEYS.all, 'subreadit-me', subreaditName] as const,
-    subreaditTotalUsers: (subreaditName: string) => [
+    subreaditAbout: (subreaditName: string) => [
         ...SUBREADIT_KEYS.all,
-        'total-users',
+        'about',
         subreaditName,
     ],
 };
@@ -97,7 +97,7 @@ export const useJoinSubreadit = (
                     SUBREADIT_KEYS.subreaditMe(variables)
                 );
                 queryClient.invalidateQueries(
-                    SUBREADIT_KEYS.subreaditTotalUsers(variables)
+                    SUBREADIT_KEYS.subreaditAbout(variables)
                 );
 
                 options?.onSuccess?.(data, variables, context);
@@ -131,7 +131,7 @@ export const useLeaveSubreadit = (
             onSuccess: (data, variables, context) => {
                 queryClient.resetQueries(SUBREADIT_KEYS.subreaditMe(variables));
                 queryClient.invalidateQueries(
-                    SUBREADIT_KEYS.subreaditTotalUsers(variables)
+                    SUBREADIT_KEYS.subreaditAbout(variables)
                 );
                 options?.onSuccess?.(data, variables, context);
             },
@@ -176,20 +176,23 @@ export const useGetSubreaditMe = (subreaditName: string) => {
 };
 
 type GetSubreaditTotalUsersResponse = {
-    total: number;
+    totalMembers: number;
+    id: number;
+    name: string;
+    createdAt: string;
 };
 
-const getSubreaditTotalUsers = async (subreaditName: string) => {
+const getSubreaditAbout = async (subreaditName: string) => {
     const response = await axiosPrivate.get<GetSubreaditTotalUsersResponse>(
-        `subreadit/users/total?subreaditName=${subreaditName}`
+        `subreadit/about?subreaditName=${subreaditName}`
     );
     return response.data;
 };
 
-export const useGetSubreaditTotalUsers = (subreaditName: string) => {
+export const useGetSubreaditAbout = (subreaditName: string) => {
     return useQuery(
-        SUBREADIT_KEYS.subreaditTotalUsers(subreaditName),
-        () => getSubreaditTotalUsers(subreaditName),
+        SUBREADIT_KEYS.subreaditAbout(subreaditName),
+        () => getSubreaditAbout(subreaditName),
         {
             retry: false,
         }

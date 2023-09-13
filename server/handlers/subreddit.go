@@ -93,8 +93,9 @@ func GetSubreadits(w http.ResponseWriter, r *http.Request) {
 
 func CreateResponseSubreadit(subreadit *models.Subreadit) models.SubreaditSerializer {
 	return models.SubreaditSerializer{
-		ID:   subreadit.ID,
-		Name: subreadit.Name,
+		ID:        subreadit.ID,
+		Name:      subreadit.Name,
+		CreatedAt: subreadit.CreatedAt,
 	}
 }
 
@@ -236,9 +237,9 @@ func GetSubreaditMe(w http.ResponseWriter, r *http.Request) {
 	common.RespondJSON(w, http.StatusOK, userSubreaditResponse)
 }
 
-func GetSubreaditTotalUsers(w http.ResponseWriter, r *http.Request) {
+func GetSubreaditAbout(w http.ResponseWriter, r *http.Request) {
 	subreaditName := r.URL.Query().Get("subreaditName")
-	_, err := models.FindSubreaditByName(subreaditName)
+	subreadit, err := models.FindSubreaditByName(subreaditName)
 	if err != nil {
 		common.RespondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -248,8 +249,14 @@ func GetSubreaditTotalUsers(w http.ResponseWriter, r *http.Request) {
 		common.RespondError(w, http.StatusNotFound, err.Error())
 		return
 	}
+	type GetSubreaditAboutResponse struct {
+		TotalMembers int64 `json:"totalMembers"`
+		models.SubreaditSerializer
+	}
+	subreaditResponse := CreateResponseSubreadit(&subreadit)
 
-	common.RespondJSON(w, http.StatusOK, struct {
-		Total int64 `json:"total"`
-	}{Total: count})
+	common.RespondJSON(w, http.StatusOK, GetSubreaditAboutResponse{
+		TotalMembers:        count,
+		SubreaditSerializer: subreaditResponse,
+	})
 }

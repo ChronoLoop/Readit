@@ -9,8 +9,9 @@ import (
 )
 
 type OverviewSubreadit struct {
-	ID   sql.NullInt64
-	Name sql.NullString
+	ID        sql.NullInt64
+	Name      sql.NullString
+	CreatedAt sql.NullTime
 }
 
 type OverviewPost struct {
@@ -55,6 +56,7 @@ type PostWithComments struct {
 const getUserOverviewPostsAndComments = `
 Select 
 subreadits.name as subreadit_name,
+subreadits.created_at,
 post_users.username as post_username,
 
 posts.id, 
@@ -121,6 +123,7 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 
 		if err := rows.Scan(
 			&subreadit.Name,
+			&subreadit.CreatedAt,
 			&postUser.Username,
 
 			&post.ID,
@@ -153,8 +156,9 @@ func GetUserOverviewPostsAndComments(userId int64) ([]PostWithComments, error) {
 			CreatedAt:        post.CreatedAt.Time,
 			UpdatedAt:        post.UpdatedAt.Time,
 			Subreadit: SubreaditSerializer{
-				ID:   subreadit.ID.Int64,
-				Name: subreadit.Name.String,
+				ID:        subreadit.ID.Int64,
+				Name:      subreadit.Name.String,
+				CreatedAt: subreadit.CreatedAt.Time,
 			},
 		}
 		postCommentSerialize := PostCommentSerializer{
