@@ -34,8 +34,9 @@ type Subreadit struct {
 }
 
 type SubreaditSerializer struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type SubreaditUser struct {
