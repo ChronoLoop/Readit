@@ -44,6 +44,11 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := models.CreatePostCommentVote(issuer, newComment.ID, 1); err != nil {
+		common.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	commentResponse := CommentResponse{CommentId: newComment.ID}
 
 	common.RespondJSON(w, http.StatusCreated, commentResponse)
