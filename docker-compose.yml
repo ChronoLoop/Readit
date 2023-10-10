@@ -10,17 +10,18 @@ services:
       - "5432:5432"
     volumes:
       - data:/var/lib/postgresql/data
-  # backend:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "5000:5000"
-  #   env_file:
-  #     # change to POSTGRES_HOST="database"
-  #     - .env
-  #   depends_on:
-  #     - database
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - "POSTGRES_HOST=database"
+    depends_on:
+      - database
 
 volumes:
   data:
